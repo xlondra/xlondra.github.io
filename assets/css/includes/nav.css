@@ -1,0 +1,99 @@
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: var(--bg-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+}
+nav > div {
+    display: flex;
+    gap: 4vw;
+}
+
+nav > div > a {
+    position: relative;
+    text-decoration: none;
+    color: var(--accent);
+    transition: color .2s ease-in-out;
+}
+
+nav > div > a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-soft);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .25s ease;
+}
+
+nav > div > a:hover {
+    color: var(--accent-soft);
+}
+
+nav > div > a:hover::after {
+    transform: scaleX(1);
+}
+
+/* Terminal prompt container */
+nav > div:first-child {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    color: var(--accent);
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1ch;
+}
+
+/* Blinking cursor */
+.cursor {
+    display: inline;
+    color: var(--accent); 
+    animation: blink 1s step-start infinite;
+}
+
+/* Blink keyframes */
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+/* Optional: slightly dim the prompt symbol ($>) */
+nav > div:first-child::before {
+    content: "";
+}
+
+/* Center only the second div */
+nav > div:nth-child(2) {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.terminal {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    color: var(--accent);
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1ch;
+}
+
+.cursor {
+    display: inline;
+    animation: blink 2.5s step-start infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}

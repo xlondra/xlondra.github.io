@@ -1,0 +1,26 @@
+.contact-page {
+    width: 100%;
+    max-width: 750px;
+    margin: 50px auto;
+    padding: 0 15px;
+    color: var(--text-secondary);
+}
+
+.contact-page h1 {
+    color: var(--accent);
+    margin-bottom: 30px;
+}
+
+.contact-info p {
+    margin-bottom: 15px;
+    font-size: 1.05rem;
+}
+
+.contact-info a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}

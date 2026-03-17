@@ -1,0 +1,156 @@
+/* =========================
+   WRITEUP CONTAINER
+========================= */
+
+.writeup {
+    width: 100%;
+    max-width: 800px;
+}
+
+
+/* =========================
+   LAB HEADER
+========================= */
+
+.lab-header {
+    margin-bottom: 40px;
+}
+
+.lab-title {
+    font-size: 2rem;
+    color: var(--accent);
+    margin-bottom: 15px;
+}
+
+
+/* =========================
+   LAB METADATA PANEL
+========================= */
+
+.lab-meta {
+    list-style: none;
+    padding: 20px;
+    margin: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.lab-meta li {
+    padding: 6px 0;
+    color: var(--text-secondary);
+}
+
+.lab-meta strong {
+    color: var(--text-primary);
+}
+
+.lab-meta a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.lab-meta a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================
+   WRITEUP SECTIONS
+========================= */
+
+.writeup-section {
+    margin-top: 50px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border);
+}
+
+.section-title {
+    margin-bottom: 15px;
+    color: var(--accent);
+}
+
+
+/* =========================
+   TEXT CONTENT
+========================= */
+
+.writeup p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 750px;
+}
+
+
+/* =========================
+   TAGS
+========================= */
+
+.tag {
+    display: inline-block;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    margin-right: 6px;
+}
+
+
+/* =========================
+   IMAGES
+========================= */
+
+.lab-image {
+    width: 100%;
+    max-width: 750px;
+    margin: 15px 0;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    transition: border-color 0.2s ease;
+}
+
+.lab-image:hover {
+    border-color: var(--accent);
+}
+
+.lab-image {
+    cursor: zoom-in;
+}
+
+.zoom-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.zoom-overlay img {
+    max-width: 90%;
+    max-height: 90%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+/* =========================
+   CODE BLOCKS
+========================= */
+
+pre {
+    background: #020617;
+    border: 1px solid var(--border);
+    padding: 15px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    margin: 15px 0;
+}
+
+code {
+    color: var(--accent);
+    font-family: "JetBrains Mono", monospace;
+}

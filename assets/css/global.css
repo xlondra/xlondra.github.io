@@ -1,0 +1,41 @@
+:root {
+
+    /* Main colors */
+    --bg-primary: #0a0f14;
+    --bg-secondary: #0f1720;
+    --bg-card: #141c26;
+
+    /* Text */
+    --text-primary: #e6edf3;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    /* Hacker accent */
+    --accent: #4ADE80;
+    --accent-soft: #00cc7a;
+
+    /* Borders */
+    --border: #1f2a36;
+
+    /* Effects */
+    --glow: 0 0 8px rgba(0,255,156,0.6);
+
+    /* Layout */
+    --radius: 8px;
+    --container: 1100px;
+}
+
+* {
+    font-family: "JetBrains Mono", monospace;
+}
+
+body {
+    margin: 0;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+

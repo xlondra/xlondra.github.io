@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab name - Writeup</title>
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+
+    <script src="../../../assets/js/terminal.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+</head>
+<body>
+    <!--This file is a template file and should therefor not be taken seriously-->
+    <nav>
+        <div class="terminal">
+            <span class="prompt">londra@kali $> </span>
+            <span class="typed"></span><span class="cursor">_</span>
+        </div>
+        <div>
+            <a href="">Home</a>
+            <a href="">Writeups</a>
+            <a href="">Contact</a>
+        </div>
+    </nav>
+
+    <main>
+        <article class="writeup">
+            <header class="lab-header">
+                <h1 class="lab-title">Lab: Iron Corp</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 2026-03-17</li>
+                    <li><strong>Platform:</strong> TryHackMe</li>
+                    <li><strong>Difficulty:</strong> Hard</li>
+                    <li><strong>Link:</strong> <a href="https://tryhackme.com/room/ironcorp">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">smb</span>
+                        <span class="tag">windows</span>
+                        <span class="tag">metasploit</span> <!--Don't forget to change these-->
+                    </li>
+                </ul>
+            </header>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <p>Lets first start scanning the target network with nmap</p>
+                <img src="images/nmap1.png" class="lab-image zoomable">
+
+                <pre><code>└─$ sudo nmap -p- ironcorp.me -Pn</code></pre>
+
+                <p>This shows us 7 open ports.<br>
+                Next, the version scan, we want to know what exactly is running on the ports
+                </p>
+                <img src="images/nmap2.png" class="lab-image zoomable">
+                
+                <pre><code>└─$ sudo nmap -p53,135,3389,8080,11025,49668,49670 -sV ironcorp.me -Pn</code></pre>
+
+                <p>
+                    This result strongly indicates that this service is running on a Windows Server (IIS)<br>
+                    We can also see 2 webservers running. One on port <b>8080</b> and one on port <b>11025</b>
+                </p>
+            </section>
+
+            <section class="writeup-section">
+
+                <h2 class="section-title">Exploitation</h2>
+
+                <img src="ss.png" class="lab-image zoomable">
+
+                <p>
+                The SMB service was vulnerable to EternalBlue which allowed
+                remote code execution through the Metasploit module.
+                </p>
+
+            </section>
+        </article>
+    </main>
+    
+    <footer>
+        Copyleft &copy; <span id="year"></span>
+    </footer>
+</body>
+</html>

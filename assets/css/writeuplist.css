@@ -1,0 +1,77 @@
+.archive {
+    width: 100%;
+    max-width: 800px;
+}
+
+/* YEAR HEADER */
+
+.year-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 1.4rem;
+    color: var(--accent);
+    cursor: pointer;
+}
+
+.year-text {
+    color: var(--text-primary);
+}
+
+.count {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* YEAR CONTENT */
+
+.year-content {
+    overflow: hidden;       /* essential for collapse */
+    max-height: 0;          /* start collapsed */
+    transition: max-height 0.35s ease;
+}
+
+
+/* WRITEUP LINKS */
+
+.writeup-link {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 10px 15px;
+    margin-bottom: 10px;
+
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    text-decoration: none;
+    color: var(--text-secondary);
+}
+
+.writeup-link:hover {
+    border-color: var(--accent);
+}
+
+
+/* DIFFICULTY COLORS */
+
+.lab-difficulty.easy {
+    color: #22c55e;
+}
+
+.lab-difficulty.medium {
+    color: #facc15;
+}
+
+.lab-difficulty.hard {
+    color: #ef4444;
+}
+
+.chevron {
+    display: inline-block;
+    margin-right: 8px;
+    color: var(--accent);
+    transition: transform 0.25s ease;
+}

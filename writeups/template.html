@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab name - Writeup</title>
+    <link rel="stylesheet" href="../assets/css/writeup.css">
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <link rel="stylesheet" href="../assets/css/index.css">
+
+    <script src="../assets/js/terminal.js" defer></script>
+    <script src="../assets/js/footer.js" defer></script>
+    <script src="../assets/js/zoomer.js" defer></script>
+</head>
+<body>
+    <!--This file is a template file and should therefor not be taken seriously-->
+    <nav>
+        <div class="terminal">
+            <span class="prompt">londra@kali $> </span>
+            <span class="typed"></span><span class="cursor">_</span>
+        </div>
+        <div>
+            <a href="">Home</a>
+            <a href="">Writeups</a>
+            <a href="">Contact</a>
+        </div>
+    </nav>
+
+    <main>
+        <article class="writeup">
+            <header class="lab-header">
+                <h1 class="lab-title">Lab: Blue</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 2026-03-17</li>
+                    <li><strong>Platform:</strong> TryHackMe</li>
+                    <li><strong>Difficulty:</strong> Easy</li>
+                    <li><strong>Lab:</strong> <a href="#">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">smb</span>
+                        <span class="tag">windows</span>
+                        <span class="tag">metasploit</span>
+                    </li>
+                </ul>
+            </header>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <img src="ss.png" class="lab-image zoomable">
+
+                <pre><code>nmap -sC -sV 10.10.10.5</code></pre>
+
+                <p>
+                Initial scanning was performed using Nmap to identify open ports
+                and services running on the target system.
+                </p>
+
+            </section>
+
+            <section class="writeup-section">
+
+                <h2 class="section-title">Exploitation</h2>
+
+                <img src="ss.png" class="lab-image zoomable">
+
+                <p>
+                The SMB service was vulnerable to EternalBlue which allowed
+                remote code execution through the Metasploit module.
+                </p>
+
+            </section>
+        </article>
+    </main>
+    
+    <footer>
+        Copyleft &copy; <span id="year"></span>
+    </footer>
+</body>
+</html>
