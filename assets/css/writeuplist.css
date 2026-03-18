@@ -37,7 +37,8 @@
 
 .writeup-link {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-evenly;
+    gap: 10px;
 
     padding: 10px 15px;
     margin-bottom: 10px;

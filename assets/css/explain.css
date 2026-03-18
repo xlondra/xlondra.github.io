@@ -1,0 +1,48 @@
+.command-explanation {
+    margin: 20px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    overflow: hidden;
+}
+
+/* Header (clickable) */
+.command-explanation summary {
+    cursor: pointer;
+    padding: 10px 15px;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+}
+
+/* Hide default arrow */
+.command-explanation summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Custom chevron */
+.command-explanation summary::before {
+    content: "";
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+}
+
+/* Rotate when open */
+.command-explanation[open] summary::before {
+    transform: rotate(90deg);
+}
+
+/* Body styling */
+.command-explanation p {
+    padding: 10px 15px;
+    color: var(--text-secondary);
+}
+
+.command-explanation pre {
+    margin: 0;
+    padding: 15px;
+    overflow-x: auto;
+    text-align: left;
+    background: #020617;
+    border-radius: var(--radius);
+}

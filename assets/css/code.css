@@ -1,0 +1,54 @@
+.code-block {
+    margin: 20px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #020617;
+    overflow: hidden;
+}
+
+/* clickable header */
+.code-block summary {
+    cursor: pointer;
+    padding: 10px 15px;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+}
+
+/* remove default ugly arrow */
+.code-block summary::-webkit-details-marker {
+    display: none;
+}
+
+/* custom arrow */
+.code-block summary::before {
+    content: "";
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+}
+
+/* rotate when open */
+.code-block[open] summary::before {
+    transform: rotate(90deg);
+}
+
+/* code styling */
+.code-block pre {
+    margin: 0;
+    padding: 15px;
+    overflow-x: auto;
+}
+
+.code-block code {
+    color: var(--accent);
+    font-family: "JetBrains Mono", monospace;
+}
+
+.code-block pre {
+    margin: 0;
+    padding: 15px;
+    overflow-x: auto;
+
+    text-align: left;   /* force left alignment */
+    white-space: pre;   /* preserve formatting */
+}
