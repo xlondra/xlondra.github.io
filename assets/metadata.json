@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Iron Corp",
+    "url": "writeups/2026/IronCorp/ironcorp.html",
+    "platform": "TryHackMe",
+    "difficulty": "Hard",
+    "year": "2026",
+    "tags": ["SSRF", "RFI", "DNS"]
+  },
+  {
+    "title": "Robots",
+    "url": "writeups/2026/Robots/robots.html",
+    "platform": "TryHackMe",
+    "difficulty": "Hard",
+    "year": "2026",
+    "tags": ["SSH", "XSS", "Linux", "RFI"]
+  }
+]

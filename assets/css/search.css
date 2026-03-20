@@ -1,0 +1,21 @@
+.writeup-search {
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+#searchInput {
+    width: 100%;
+    padding: 10px 12px;
+
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    color: var(--text-primary);
+    font-family: monospace;
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: var(--accent);
+}

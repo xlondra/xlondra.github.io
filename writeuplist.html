@@ -3,14 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Writeups</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self';">
+    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Pentest Writeups & Security Notes">
+    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xlondra.github.io">
+    <title>Writeups | CTFs, OSCP Labs, Pentesting Reports</title>
+
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="assets/css/index.css">
     <link rel="stylesheet" href="assets/css/writeuplist.css">
+    <link rel="stylesheet" href="assets/css/search.css">
 
     <script src="assets/js/writeuplist.js" defer></script>
     <script src="assets/js/footer.js" defer></script>
+    <script src="assets/js/search.js" defer></script>
 </head>
 <body>
     <header>
@@ -28,6 +40,17 @@
     </header>
 
     <main>
+        <section class="writeup-search">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search writeups..."
+            >
+        </section>
+
+        <div id="searchResults"></div>
+
+
         <section class="archive">
             <h1 class="lab-title">Writeups</h1>
 
@@ -41,6 +64,11 @@
                 <div class="year-content">
                     <a href="writeups/2026/IronCorp/ironcorp.html" class="writeup-link">
                         <span class="lab-name">Iron Corp | </span>
+                        <span class="lab-platform">TryHackMe | </span>
+                        <span class="lab-difficulty hard">Hard</span>
+                    </a>
+                    <a href="writeups/2026/Robots/robots.html" class="writeup-link">
+                        <span class="lab-name">Robots | </span>
                         <span class="lab-platform">TryHackMe | </span>
                         <span class="lab-difficulty hard">Hard</span>
                     </a>

