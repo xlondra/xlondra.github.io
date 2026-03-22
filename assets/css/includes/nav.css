@@ -101,6 +101,10 @@ nav > div:nth-child(2) {
 }
 
 @media screen and (max-width: 600px) {
+    .lab-title {
+        font-size: 1.5em;
+    }
+
     header:has(.nav.hidden) {
 
         &::before {

