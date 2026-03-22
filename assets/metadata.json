@@ -14,5 +14,13 @@
     "difficulty": "Hard",
     "year": "2026",
     "tags": ["SSH", "XSS", "Linux", "RFI"]
+  },
+  {
+    "title": "Filebrowser",
+    "url": "writeups/2026/Filebrowser/filebrowser.html",
+    "platform": "Offsec",
+    "difficulty": "Medium",
+    "year": "2026",
+    "tags": ["RCE", "SUID"]
   }
 ]
