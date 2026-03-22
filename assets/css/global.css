@@ -13,6 +13,7 @@
     /* Hacker accent */
     --accent: #4ADE80;
     --accent-soft: #00cc7a;
+    --accent-dark: #4c6d51;
 
     /* Borders */
     --border: #1f2a36;
@@ -21,12 +22,15 @@
     --glow: 0 0 8px rgba(0,255,156,0.6);
 
     /* Layout */
-    --radius: 8px;
+    --radius: 3px;
     --container: 1100px;
 }
 
 * {
     font-family: "JetBrains Mono", monospace;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 body {

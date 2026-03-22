@@ -3,12 +3,25 @@
     max-width: 800px;
 }
 
+.labs-title {
+    color: #E2E8F0;
+}
+
 /* YEAR HEADER */
+
+.chevron {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 1.5em;
+    width: 1.5em;
+    transition: transform 0.25s ease;
+}
 
 .year-header {
     display: flex;
     align-items: center;
-    gap: 8px;
+    /* gap: 8px; */
 
     font-size: 1.4rem;
     color: var(--accent);
@@ -16,12 +29,13 @@
 }
 
 .year-text {
-    color: var(--text-primary);
+    color: var(--text-secondary);
 }
 
 .count {
     color: var(--text-muted);
     font-size: 0.9rem;
+    align-self: start;
 }
 
 /* YEAR CONTENT */
@@ -36,9 +50,9 @@
 /* WRITEUP LINKS */
 
 .writeup-link {
-    display: flex;
-    justify-content: space-evenly;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
 
     padding: 10px 15px;
     margin-bottom: 10px;
@@ -51,8 +65,33 @@
     color: var(--text-secondary);
 }
 
-.writeup-link:hover {
-    border-color: var(--accent);
+.writeup-link:hover { border-color: var(--accent); }
+
+/* Base alignment */
+.writeup-link span {
+    position: relative;
+    text-align: center;
+}
+
+/* Column alignments */
+
+/* Properly centered separators */
+.lab-name::after,
+.lab-platform::after {
+    content: "";
+    position: absolute;
+    right: 0;                /* anchor to column edge */
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgb(41, 41, 41),
+        transparent
+    );
 }
 
 
@@ -68,11 +107,4 @@
 
 .lab-difficulty.hard {
     color: #ef4444;
-}
-
-.chevron {
-    display: inline-block;
-    margin-right: 8px;
-    color: var(--accent);
-    transition: transform 0.25s ease;
 }

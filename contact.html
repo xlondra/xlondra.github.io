@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Contact</title>
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="assets/css/index.css">
     <link rel="stylesheet" href="assets/css/contact.css">
 
+    <script src="assets/js/nav.js" defer></script>
     <script src="assets/js/footer.js" defer></script>
 </head>
 <body>
@@ -17,22 +18,26 @@
                 <span class="prompt">londra@kali $> </span>
                 <span class="typed"></span><span class="cursor">_</span>
             </div>
-            <div>
+            <div class="nav hidden">
                 <a href="index.html">Home</a>
                 <a href="writeuplist.html">Writeups</a>
-                <a href="contact.html">Contact</a>
+                <a href="tools.html">Tools</a>
+                <a href="#">Contact</a>
             </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
         </nav>
     </header>
 
     <main class="contact-page">
-        <h1>Contact Me</h1>
+        <section class="contact-block">
+            <h1 class="lab-title">Contact Me</h1>
 
-        <section class="contact-info">
-            <p><strong>Email:</strong> <a href="mailto:londra@example.com">Available soon</a></p>
-            <p><strong>GitHub:</strong> <a href="https://github.com/xlondra" target="_blank">github.com/xlondra</a></p>
-            <p><strong>TryHackMe</strong> <a href="https://tryhackme.com/p/ParanoidBadger" target="_blank">ParanoidBadger</a></p>
-            <p><strong>Other:</strong> Feel free to reach out for collaboration or questions!</p>
+            <section class="contact-info">
+                <p><strong>Email:</strong> <a href="mailto:londra@example.com">Available soon</a></p>
+                <p><strong>GitHub:</strong> <a href="https://github.com/xlondra" target="_blank">github.com/xlondra</a></p>
+                <p><strong>TryHackMe</strong> <a href="https://tryhackme.com/p/ParanoidBadger" target="_blank">ParanoidBadger</a></p>
+                <p><strong>Other:</strong> Feel free to reach out for collaboration or questions!</p>
+            </section>
         </section>
     </main>
 

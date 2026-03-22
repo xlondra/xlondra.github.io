@@ -13,9 +13,19 @@
 
     color: var(--text-primary);
     font-family: monospace;
+
+    transition: .12s ease-in-out;
+}
+
+#searchInput:hover {
+    border-color: var(--accent-dark);
 }
 
 #searchInput:focus {
     outline: none;
     border-color: var(--accent);
+}
+
+#searchInput:focus:hover {
+    border-color: var(--accent-soft);
 }

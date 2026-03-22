@@ -4,8 +4,10 @@ const input = document.getElementById("searchInput");
 const results = document.getElementById("searchResults");
 const archive = document.querySelector(".archive");
 
+const url= `${window.location.origin}/assets/metadata.json`;
+
 // Load JSON
-fetch("https://xlondra.github.io/assets/metadata.json")
+fetch(url)
     .then(res => res.json())
     .then(data => writeups = data);
 
@@ -34,9 +36,10 @@ input.addEventListener("input", () => {
         el.className = "writeup-link";
 
         el.innerHTML = `
-            <span class="lab-name">${w.title} | </span>
-            <span class="lab-platform">${w.platform} | </span>
+            <span class="lab-name">${w.title}</span>
+            <span class="lab-platform">${w.platform}</span>
             <span class="lab-difficulty ${w.difficulty.toLowerCase()}">${w.difficulty}</span>
+
         `;
 
         results.appendChild(el);

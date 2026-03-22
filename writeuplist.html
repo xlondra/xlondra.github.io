@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="script-src 'self';">
     <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
     <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="assets/css/writeuplist.css">
     <link rel="stylesheet" href="assets/css/search.css">
 
+    <script src="assets/js/nav.js" defer></script>
     <script src="assets/js/writeuplist.js" defer></script>
     <script src="assets/js/footer.js" defer></script>
     <script src="assets/js/search.js" defer></script>
@@ -31,11 +32,13 @@
                 <span class="prompt">londra@kali $> </span>
                 <span class="typed"></span><span class="cursor">_</span>
             </div>
-            <div>
+            <div class="nav hidden">
                 <a href="index.html">Home</a>
                 <a href="#">Writeups</a>
+                <a href="tools.html">Tools</a>
                 <a href="contact.html">Contact</a>
             </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
         </nav>
     </header>
 
@@ -52,31 +55,30 @@
 
 
         <section class="archive">
-            <h1 class="lab-title">Writeups</h1>
+            <h1 class="labs-title">Writeups</h1>
 
             <div class="year-block">
                 <div class="year-header" data-year="2026">
-                    <span class="chevron">▶</span>
+                    <span class="chevron"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg></span>
                     <span class="year-text">2026</span>
                     <span class="count"></span>
                 </div>
 
                 <div class="year-content">
                     <a href="writeups/2026/IronCorp/ironcorp.html" class="writeup-link">
-                        <span class="lab-name">Iron Corp | </span>
-                        <span class="lab-platform">TryHackMe | </span>
+                        <span class="lab-name">Iron Corp</span>
+                        <span class="lab-platform">TryHackMe</span>
                         <span class="lab-difficulty hard">Hard</span>
                     </a>
                     <a href="writeups/2026/Robots/robots.html" class="writeup-link">
-                        <span class="lab-name">Robots | </span>
-                        <span class="lab-platform">TryHackMe | </span>
+                        <span class="lab-name">Robots</span>
+                        <span class="lab-platform">TryHackMe</span>
                         <span class="lab-difficulty hard">Hard</span>
                     </a>
                 </div>
             </div>
         </section>
     </main>
-
     <footer>
         Copyleft &copy; <span id="year"></span>
     </footer>

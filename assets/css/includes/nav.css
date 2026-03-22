@@ -9,7 +9,9 @@ nav {
     padding: 10px 20px;
     border-bottom: 1px solid var(--border);
     z-index: 100;
+    user-select: none;
 }
+
 nav > div {
     display: flex;
     gap: 4vw;
@@ -83,7 +85,7 @@ nav > div:nth-child(2) {
     font-size: 1rem;
     color: var(--accent);
     padding: 8px 12px;
-    border-radius: 5px;
+    border-radius: var(--radius);
     display: inline-flex;
     align-items: center;
     gap: 0.1ch;
@@ -96,4 +98,76 @@ nav > div:nth-child(2) {
 
 @keyframes blink {
     50% { opacity: 0; }
+}
+
+@media screen and (max-width: 600px) {
+    header:has(.nav.hidden) {
+
+        &::before {
+            display: none;
+        }
+        
+        & nav {
+            position: static;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav {
+            display: none;
+        }
+    }
+
+    header:not(:has(.nav.hidden)) .hamburger-button {
+        visibility: hidden;
+    }
+
+    .hamburger-button svg {
+        height: 2em;
+    }
+
+    nav {
+        position: fixed;
+        right: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+        width: fit-content;
+    }
+
+    nav > div:nth-child(2) {
+        position: absolute;
+    }
+
+    .nav {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: start;
+        padding-left: 2.5em;
+    }
+
+    header {
+        z-index: 9999;
+        position: fixed;
+        width: 100%;
+    }
+
+    header::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        top: 0;
+        left: 0;
+    }
 }

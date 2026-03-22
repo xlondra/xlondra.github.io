@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pentest Writeups | Offensive Security Learning Journal</title>
     <meta name="description" content="Pentesting writeups, CTF walkthroughs, and OSCP preparation notes covering web exploitation, network attacks, and privilege escalation.">
     <meta name="author" content="xlondra">
@@ -13,10 +13,10 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://xlondra.github.io">
     <meta property="og:image" content="https://xlondra.github.io/assets/img/preview.png">
-    <title>Home</title>
     <link rel="stylesheet" href="assets/css/index.css">
     <link rel="stylesheet" href="assets/css/global.css">
 
+    <script src="assets/js/nav.js" defer></script>
     <script src="assets/js/footer.js" defer></script>
 </head>
 <body>
@@ -26,14 +26,15 @@
                 <span class="prompt">londra@kali $> </span>
                 <span class="typed"></span><span class="cursor">_</span>
             </div>
-            <div>
+            <div class="nav hidden">
                 <a href="#">Home</a>
                 <a href="writeuplist.html">Writeups</a>
+                <a href="tools.html">Tools</a>
                 <a href="contact.html">Contact</a>
             </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
         </nav>
     </header>
-    
     <main>
         <section class="about">
             <h1>Junior Penetration Tester</h1>

