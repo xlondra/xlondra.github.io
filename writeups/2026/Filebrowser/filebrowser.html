@@ -146,10 +146,15 @@
                 </div>
 
                 <p>I found the following:</p>
-                <img src="images/findSUID.png" class="lab-image zoomable">
-                <p>aa-exec is a Linux utility used to run a program under a specific AppArmor security profile.
-                AppArmor is a kernel security system that restricts what a program is allowed to do (files it can read, commands it can run, network access, etc.). Think of it like a “permission cage” around processes. </p>
-            
+                <img src="images/findSUID.png" class="lab-image zoomable">      
+                <details class="command-explanation">
+                    <summary>What is aa-exec</summary>
+                    <p>
+                        aa-exec is a Linux utility used to run a program under a specific AppArmor security profile.
+                        AppArmor is a kernel security system that restricts what a program is allowed to do (files it can read, commands it can run, network access, etc.). Think of it like a “permission cage” around processes. 
+                    </p>
+                </details>
+
                 <p>Since this binary is owned by root and the sticky bit is set (SUID), we can execute <b>aa-exec</b> as root.<br>
                 I crafted the following command to extract the root flag:</p>
 
