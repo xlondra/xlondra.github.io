@@ -30,5 +30,13 @@
     "difficulty": "Hard",
     "year": "2026",
     "tags": ["OSS", "RCE", "Docker", "nmap"]
+  },
+  {
+    "title": "Ra 1.1",
+    "url": "writeups/2026/Ra/ra.html",
+    "platform": "Tryhackme",
+    "difficulty": "Hard",
+    "year": "2026",
+    "tags": ["AD", "SMB", "XMPP"]
   }
 ]
