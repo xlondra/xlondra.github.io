@@ -45,6 +45,11 @@ nav > div > a:hover::after {
     transform: scaleX(1);
 }
 
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+}
+
 /* Terminal prompt container */
 nav > div:first-child {
     font-family: 'Courier New', Courier, monospace;
@@ -60,12 +65,7 @@ nav > div:first-child {
 .cursor {
     display: inline;
     color: var(--accent); 
-    animation: blink 1s step-start infinite;
-}
-
-/* Blink keyframes */
-@keyframes blink {
-    50% { opacity: 0; }
+    animation: blink 2.5s step-start infinite;
 }
 
 /* Optional: slightly dim the prompt symbol ($>) */
@@ -91,57 +91,121 @@ nav > div:nth-child(2) {
     gap: 0.1ch;
 }
 
-.cursor {
-    display: inline;
-    animation: blink 2.5s step-start infinite;
+.nav-exit {
+    display: none;
 }
 
-@keyframes blink {
-    50% { opacity: 0; }
-}
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 750px) {
+    :root {
+        --nav-animation-duration-1: .25s;
+        --nav-animation-duration-2: .25s;
+        --nav-animation-duration-3: .5s;
+        --nav-animation-duration-4: .15s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :root {
+            --nav-animation-duration-1: 0s;
+            --nav-animation-duration-2: 0s;
+            --nav-animation-duration-3: 0s;
+            --nav-animation-duration-4: 0s;
+        }
+    }
+
     .lab-title {
         font-size: 1.5em;
     }
 
-    header:has(.nav.hidden) {
-
-        &::before {
-            display: none;
-        }
-        
-        & nav {
-            position: static;
-            height: 100%;
-            width: 100%;
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav {
-            display: none;
-        }
+    header {
+        z-index: 9999;
+        position: fixed;
+        width: 100%;
+        top: 0;
     }
 
-    header:not(:has(.nav.hidden)) .hamburger-button {
+    header::before {
+        content: "";
+        position: fixed;
+        z-index: 99;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        top: 0;
+        left: 0;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity var(--nav-animation-duration-1) ease, visibility 0s linear 0s;
+    }
+
+    header:has(.nav.hidden)::before {
+        opacity: 0;
         visibility: hidden;
+        transition: opacity var(--nav-animation-duration-1) ease var(--nav-animation-duration-1), 
+                    visibility 0s linear calc(var(--nav-animation-duration-1) * 2);
+    }
+
+    nav > div:first-child {
+        position: fixed;
+        top: 15px;
+        left: 20px;
+        z-index: 102;
+        transform: translate(calc(100vw - 250px), 30px);
+        transition: transform var(--nav-animation-duration-1) cubic-bezier(0.4, 0, 0.2, 1) var(--nav-animation-duration-1);
+    }
+
+    header:has(.nav.hidden) nav > div:first-child {
+        transform: translate(0, 0);
+        transition: transform var(--nav-animation-duration-1) cubic-bezier(0.4, 0, 0.2, 1) 0s;
+    }
+
+    .hamburger-button {
+        position: fixed;
+        top: 15px;
+        right: 20px;
+        z-index: 101;
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1) rotate(0deg);
+        transition: opacity var(--nav-animation-duration-2) ease, 
+                    transform var(--nav-animation-duration-2) ease, 
+                    visibility 0s linear 0s;
     }
 
     .hamburger-button svg {
         height: 2em;
     }
 
+    header:not(:has(.nav.hidden)) .hamburger-button {
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.8) rotate(90deg);
+        transition: opacity var(--nav-animation-duration-2) ease, 
+                    transform var(--nav-animation-duration-2) ease, 
+                    visibility 0s linear var(--nav-animation-duration-2);
+    }
+
     nav {
         position: fixed;
+        top: 0;
         right: 0;
+        background: var(--bg-secondary);
         height: 100vh;
+        width: 250px;
         display: flex;
         flex-direction: column;
         align-items: end;
-        width: fit-content;
+        transition: height var(--nav-animation-duration-1) cubic-bezier(0.4, 0, 0.2, 1) 0s,
+                    width var(--nav-animation-duration-1) cubic-bezier(0.4, 0, 0.2, 1) var(--nav-animation-duration-1);
+    }
+
+    header:has(.nav.hidden) nav {
+        height: 60px;
+        width: 100vw;
+        flex-direction: row;
+        align-items: center;
+        transition: width var(--nav-animation-duration-1) cubic-bezier(0.4, 0, 0.2, 1) 0s,
+                    height var(--nav-animation-duration-1) cubic-bezier(0.4, 0, 0.2, 1) var(--nav-animation-duration-1);
     }
 
     nav > div:nth-child(2) {
@@ -153,25 +217,51 @@ nav > div:nth-child(2) {
         width: 100%;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: start;
         padding-left: 2.5em;
+        padding-top: 30vh;
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        transition: opacity var(--nav-animation-duration-1) ease var(--nav-animation-duration-3),
+                    transform var(--nav-animation-duration-1) cubic-bezier(0.2, 0.8, 0.2, 1) var(--nav-animation-duration-3),
+                    visibility 0s linear var(--nav-animation-duration-3);
     }
 
-    header {
-        z-index: 9999;
-        position: fixed;
-        width: 100%;
+    header:has(.nav.hidden) .nav {
+        padding-top: 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px);
+        transition: opacity var(--nav-animation-duration-4) ease 0s,
+                    transform var(--nav-animation-duration-4) ease 0s,
+                    visibility 0s linear var(--nav-animation-duration-4);
     }
 
-    header::before {
+    .nav-exit {
+        display: inline-block;
+        margin-top: auto;
+        padding-bottom: 3em;
+        color: #ef5350;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 700;
+        font-size: 1rem;
+        opacity: 0.6;
+    }
+
+    .nav-exit:hover {
+        color: #ff7875;
+    }
+
+    nav > div > a.nav-exit::after {
         content: "";
-        position: absolute;
-        z-index: -1;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.85);
-        top: 0;
-        left: 0;
+        position: static;
+        width: auto;
+        height: auto;
+        background: transparent;
+        transform: none;
+        transition: none;
     }
 }

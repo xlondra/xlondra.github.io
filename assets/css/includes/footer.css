@@ -7,27 +7,5 @@ footer {
     font-size: 0.9rem;
     position: relative;   /* stays under content */
     width: 100%;
-}
-
-/* Optional: subtle glow on hover */
-footer p:hover {
-    color: var(--accent);
-    text-shadow: var(--glow);
-}
-
-/* Cursor blink animation */
-.footer-cursor {
-    display: inline-block;
-    color: var(--accent);
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    0%, 50%, 100% { opacity: 1; }
-    25%, 75% { opacity: 0; }
-}
-
-/* Optional: subtle glow */
-.footer-cursor {
-    text-shadow: 0 0 4px var(--accent);
+    cursor: default;
 }
