@@ -84,9 +84,10 @@
                 <p>Accessing port 3000 in a browser reveals the following page:</p>
                 <img src="images/sshcontrolhome.png" class="lab-image zoomable">
 
-                <p>Account registration is not possible; the "Register" button simply reloads the page.</p>
+                <p>Account registration is not possible; the "Register" button simply reloads the page.
+                    I am, however, able to log in. So I entered "test" as username and password and intercepted the request with burp:
+                </p>
 
-                <p>I attempted SQL injection using sqlmap. To do this, I routed traffic through Burp Suite and submitted test credentials:</p>
                 <img src="images/burpIntercepted.png" class="lab-image zoomable">
 
                 <p>I then saved the intercepted request:</p>
@@ -206,7 +207,7 @@ if __name__ == "__main__":
                     <pre><code data-copy-content="cat /home/$USER/.ssh/id_ed25519.pub">└─$ cat /home/$USER/.ssh/id_ed25519.pub</code></pre>
                 </div> 
 
-                <p>I copied and submitted the public key:</p>
+                <p>I copied and pasted the public key, entered the retreived password, and submitted it:</p>
                 <img src="images/enterPublicKey.png" class="lab-image zoomable">
 
                 <p>The key was accepted:</p>
@@ -221,7 +222,7 @@ if __name__ == "__main__":
                 <img src="images/firstFlag.png" class="lab-image zoomable">
             </section>
 
-            <section>
+            <section class="writeup-section">
                 <h2 class="section-title">Privilege Escalation</h2>
 
                 <p>I used the recently disclosed copy-fail vulnerability affecting the <b>su</b> binary. By overwriting it with a crafted payload, privilege escalation to root is possible.</p>
