@@ -1,48 +1,59 @@
+/* ========================================
+   COMMAND EXPLANATION BLOCKS
+======================================== */
+
 .command-explanation {
-    margin: 20px 0;
+    margin: 18px 0;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-card);
     overflow: hidden;
 }
 
-/* Header (clickable) */
 .command-explanation summary {
     cursor: pointer;
-    padding: 10px 15px;
-    font-family: "JetBrains Mono", monospace;
-    color: var(--accent);
+    padding: 10px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
     border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-/* Hide default arrow */
-.command-explanation summary::-webkit-details-marker {
-    display: none;
-}
+.command-explanation summary::-webkit-details-marker { display: none; }
 
-/* Custom chevron */
 .command-explanation summary::before {
-    content: "";
-    margin-right: 8px;
+    content: '▶';
+    font-size: 0.6em;
     transition: transform 0.2s ease;
+    color: var(--text-muted);
 }
 
-/* Rotate when open */
 .command-explanation[open] summary::before {
     transform: rotate(90deg);
 }
 
-/* Body styling */
+.command-explanation summary:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
 .command-explanation p {
-    padding: 10px 15px;
+    padding: 12px 16px;
     color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.75;
 }
 
 .command-explanation pre {
     margin: 0;
-    padding: 15px;
+    padding: 14px 16px;
     overflow-x: auto;
-    text-align: left;
-    background: #020617;
-    border-radius: var(--radius);
+    background: var(--bg-inset);
+    border-top: 1px solid var(--border);
+    border-radius: 0;
 }

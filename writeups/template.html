@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
-    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="description" content="Offensive security writeup — penetration testing lab walkthrough.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe, cybersecurity, ethical hacking">
     <meta name="author" content="xlondra">
     <meta name="robots" content="index, follow">
-    <meta property="og:title" content="Pentest Writeups & Security Notes">
-    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://xlondra.github.io">
-    <title>Iron Corp - Tryhackme - Walktrough</title>
+    <title>Platform - Room Name - xlondra</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    
+
     <link rel="stylesheet" href="../../../assets/css/writeup.css">
     <link rel="stylesheet" href="../../../assets/css/global.css">
     <link rel="stylesheet" href="../../../assets/css/index.css">
@@ -29,8 +25,8 @@
     <header>
         <nav>
             <div class="terminal">
-                <span class="prompt">londra@kali $> </span>
-                <span class="typed"></span><span class="cursor">_</span>
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
             </div>
             <div class="nav hidden">
                 <a href="../../../index.html">Home</a>
@@ -39,23 +35,28 @@
                 <a href="../../../contact.html">Contact</a>
                 <a href="#" class="nav-exit">exit</a>
             </div>
-            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+            <div class="hamburger-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+                </svg>
+            </div>
         </nav>
     </header>
 
     <main>
         <article class="writeup">
             <div class="lab-header">
-                <h1 class="lab-title">xx - xxx - Walktrough</h1>
+                <h1 class="lab-title">Platform - Room Name</h1>
 
                 <ul class="lab-meta">
-                    <li><strong>Date:</strong> xx</li>
-                    <li><strong>Platform:</strong> xx</li>
-                    <li><strong>Difficulty:</strong> xx</li>
-                    <li><strong>Link:</strong> <a href="https://portal.offsec.com/machine/filebrowser-213910" target="_blank" rel="noopener noreferrer">Open Lab</a></li>
-                    <li><strong>Tags:</strong>
-                        <span class="tag">xx</span>
-                        <span class="tag">xx</span>
+                    <li><strong>Date</strong> DD-Mon-YYYY</li>
+                    <li><strong>Platform</strong> TryHackMe / Offsec</li>
+                    <li><strong>Difficulty</strong> Easy / Medium / Hard</li>
+                    <li><strong>Team</strong> <span class="team-badge red">Red Team</span></li>
+                    <li><strong>Link</strong> <a href="#" target="_blank" rel="noopener noreferrer">Open Lab ↗</a></li>
+                    <li><strong>Tags</strong>
+                        <span class="tag">web</span>
+                        <span class="tag">privesc</span>
                     </li>
                 </ul>
             </div>
@@ -63,40 +64,60 @@
             <section class="writeup-section">
                 <h2 class="section-title">Reconnaissance</h2>
 
-                <img src="ss.png" class="lab-image zoomable">
+                <p>Initial scanning was performed using Nmap to identify open ports
+                and services running on the target system.</p>
 
-                <pre><code>nmap -sC -sV 10.10.10.5</code></pre>
+                <img src="images/nmap1.png" class="lab-image zoomable" alt="Nmap scan results">
 
-                <p>
-                Initial scanning was performed using Nmap to identify open ports
-                and services running on the target system.
-                </p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo nmap -p- -T4 TARGET_IP">└─$ sudo nmap -p- -T4 TARGET_IP</code></pre>
+                </div>
+
+                <!-- Thought process block — use to explain WHY you made a decision -->
+                <details class="thought-block">
+                    <summary>Thought process: why -p- and -T4?</summary>
+                    <p>Running with <code>-p-</code> scans all 65535 ports instead of just the top 1000. This catches non-standard services.
+                    <code>-T4</code> speeds things up on a fast lab connection. On a real engagement, a slower timing would reduce noise.</p>
+                </details>
             </section>
 
             <section class="writeup-section">
-
                 <h2 class="section-title">Exploitation</h2>
 
-                <span class="path">../../../../etc/passwd</span> <p>That is a path. Just to remember the structure</p>
+                <p>Describe the exploitation steps here. Use <span class="path">/etc/passwd</span> inline for paths,
+                and code blocks below for commands.</p>
 
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sqlmap -u 'http://target.com/vuln.php?id=1' --dbs">└─$ sqlmap -u 'http://target.com/vuln.php?id=1' --dbs</code></pre>
+                </div>
 
-                <details class="code-block">
-                    <summary>Sample code</summary>
-<pre><code>import requests
-
-url = "http://target.com/vuln.php"
-payload = "../../../../etc/passwd"
-
-r = requests.get(url, params={"file": payload})
-print(r.text)
-</code></pre>
+                <details class="command-explanation">
+                    <summary>What this command does</summary>
+                    <p>SQLMap automates SQL injection detection and exploitation. The <code>--dbs</code> flag
+                    enumerates available databases once a vulnerable parameter is confirmed.</p>
                 </details>
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Privilege Escalation</h2>
+
+                <p>Describe the privilege escalation path here.</p>
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Lessons Learned</h2>
+
+                <p>Key takeaways from this lab:</p>
+                <ul style="list-style: none; padding: 0; margin-top: 10px;">
+                    <li style="padding: 8px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 6px;">▸ &nbsp;Key takeaway 1</li>
+                    <li style="padding: 8px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 6px;">▸ &nbsp;Key takeaway 2</li>
+                </ul>
             </section>
         </article>
     </main>
-    
+
     <footer>
-        Copyleft &copy; <span id="year"></span>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
     </footer>
 </body>
 </html>

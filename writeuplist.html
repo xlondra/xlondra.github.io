@@ -4,23 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="script-src 'self';">
-    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
-    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="description" content="Offensive and defensive security writeups — penetration testing, blue team investigations, and malware reverse engineering.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking, blue team, malware RE">
     <meta name="author" content="xlondra">
     <meta name="robots" content="index, follow">
-    <meta property="og:title" content="Pentest Writeups & Security Notes">
-    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://xlondra.github.io">
-    <title>Writeups | CTFs, OSCP Labs, Pentesting Reports</title>
+    <title>Writeups — xlondra</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="assets/css/index.css">
     <link rel="stylesheet" href="assets/css/writeuplist.css">
     <link rel="stylesheet" href="assets/css/search.css">
-
     <script src="assets/js/nav.js" defer></script>
     <script src="assets/js/writeuplist.js" defer></script>
     <script src="assets/js/footer.js" defer></script>
@@ -30,8 +23,8 @@
     <header>
         <nav>
             <div class="terminal">
-                <span class="prompt">londra@kali $> </span>
-                <span class="typed"></span><span class="cursor">_</span>
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
             </div>
             <div class="nav hidden">
                 <a href="index.html">Home</a>
@@ -40,7 +33,11 @@
                 <a href="contact.html">Contact</a>
                 <a href="#" class="nav-exit">exit</a>
             </div>
-            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+            <div class="hamburger-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+                </svg>
+            </div>
         </nav>
     </header>
 
@@ -49,60 +46,130 @@
             <input
                 type="text"
                 id="searchInput"
-                placeholder="Search writeups..."
+                placeholder="Search by name, platform, difficulty, tag..."
             >
         </section>
 
         <div id="searchResults"></div>
 
-
         <section class="archive">
             <h1 class="labs-title">Writeups</h1>
+            <p class="labs-subtitle">// red team &nbsp;·&nbsp; blue team &nbsp;·&nbsp; malware RE</p>
+
+            <!-- Category filter tabs -->
+            <div class="category-tabs">
+                <button class="cat-tab active" data-cat="all">
+                    <span class="dot"></span>All
+                </button>
+                <button class="cat-tab" data-cat="red">
+                    <span class="dot"></span>Red Team
+                </button>
+                <button class="cat-tab" data-cat="blue">
+                    <span class="dot"></span>Blue Team
+                </button>
+                <button class="cat-tab" data-cat="malware">
+                    <span class="dot"></span>Malware RE
+                </button>
+            </div>
+
+            <!-- Column headers -->
+            <div class="writeup-list-header">
+                <span>Name</span>
+                <span>Platform</span>
+                <span>Team</span>
+                <span>Difficulty</span>
+            </div>
 
             <div class="year-block">
                 <div class="year-header" data-year="2026">
-                    <span class="chevron"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg></span>
+                    <span class="chevron">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" width="14" height="14">
+                            <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
+                        </svg>
+                    </span>
                     <span class="year-text">2026</span>
                     <span class="count"></span>
                 </div>
 
                 <div class="year-content">
-                    <a href="writeups/2026/IronCorp/ironcorp.html" class="writeup-link">
+                    <a href="writeups/2026/Carnage/Carnage.html" class="writeup-link" data-team="blue" data-cat="blue">
+                        <span class="lab-name">Carnage</span>
+                        <span class="lab-platform">TryHackMe</span>
+                        <span class="lab-category blue">Blue</span>
+                        <span class="lab-difficulty medium">Medium</span>
+                    </a>
+                    <a href="writeups/2026/IronCorp/ironcorp.html" class="writeup-link" data-team="red" data-cat="red">
                         <span class="lab-name">Iron Corp</span>
                         <span class="lab-platform">TryHackMe</span>
+                        <span class="lab-category red">Red</span>
                         <span class="lab-difficulty hard">Hard</span>
                     </a>
-                    <a href="writeups/2026/Robots/robots.html" class="writeup-link">
+                    <a href="writeups/2026/Robots/robots.html" class="writeup-link" data-team="red" data-cat="red">
                         <span class="lab-name">Robots</span>
                         <span class="lab-platform">TryHackMe</span>
+                        <span class="lab-category red">Red</span>
                         <span class="lab-difficulty hard">Hard</span>
                     </a>
-                    <a href="writeups/2026/Filebrowser/filebrowser.html" class="writeup-link">
+                    <a href="writeups/2026/Filebrowser/filebrowser.html" class="writeup-link" data-team="red" data-cat="red">
                         <span class="lab-name">Filebrowser</span>
                         <span class="lab-platform">Offsec</span>
+                        <span class="lab-category red">Red</span>
                         <span class="lab-difficulty medium">Medium</span>
                     </a>
-                    <a href="writeups/2026/Envizon/envizon.html" class="writeup-link">
+                    <a href="writeups/2026/Envizon/envizon.html" class="writeup-link" data-team="red" data-cat="red">
                         <span class="lab-name">Envizon</span>
-                        <span class="lab-platform">Tryhackme</span>
+                        <span class="lab-platform">TryHackMe</span>
+                        <span class="lab-category red">Red</span>
                         <span class="lab-difficulty hard">Hard</span>
                     </a>
-                    <a href="writeups/2026/Ra/ra.html" class="writeup-link">
+                    <a href="writeups/2026/Ra/ra.html" class="writeup-link" data-team="red" data-cat="red">
                         <span class="lab-name">Ra 1.1</span>
-                        <span class="lab-platform">Tryhackme</span>
+                        <span class="lab-platform">TryHackMe</span>
+                        <span class="lab-category red">Red</span>
                         <span class="lab-difficulty hard">Hard</span>
                     </a>
-                    <a href="writeups/2026/Sshcontroll/sshcontroll.html" class="writeup-link">
+                    <a href="writeups/2026/Sshcontroll/sshcontroll.html" class="writeup-link" data-team="red" data-cat="red">
                         <span class="lab-name">sshcontrol</span>
                         <span class="lab-platform">Offsec</span>
+                        <span class="lab-category red">Red</span>
                         <span class="lab-difficulty medium">Medium</span>
                     </a>
+                    <a href="writeups/2026/infilo/infilo.html" class="writeup-link" data-team="red" data-cat="red">
+                        <span class="lab-name">Infilo</span>
+                        <span class="lab-platform">Offsec</span>
+                        <span class="lab-category red">Red</span>
+                        <span class="lab-difficulty medium">Medium</span>
+                    </a>
+                    <a href="writeups/2026/cryptkeeper/cryptkeeper.html" class="writeup-link" data-team="red" data-cat="red">
+                        <span class="lab-name">Cryptkeeper</span>
+                        <span class="lab-platform">Offsec</span>
+                        <span class="lab-category red">Red</span>
+                        <span class="lab-difficulty hard">Hard</span>
+                    </a>
+                    <!-- Blue team and Malware RE entries will go here as you add them -->
+                    <!-- Example blue team entry (commented out — uncomment and add real ones):
+                    <a href="writeups/2026/BlueSample/bluesample.html" class="writeup-link" data-team="blue" data-cat="blue">
+                        <span class="lab-name">Blue Sample Room</span>
+                        <span class="lab-platform">TryHackMe</span>
+                        <span class="lab-category blue">Blue</span>
+                        <span class="lab-difficulty medium">Medium</span>
+                    </a>
+                    -->
+                    <!-- Example malware entry (commented out — uncomment and add real ones):
+                    <a href="writeups/2026/MalwareSample/malware.html" class="writeup-link" data-team="malware" data-cat="malware">
+                        <span class="lab-name">Sample Analysis</span>
+                        <span class="lab-platform">Any.run</span>
+                        <span class="lab-category malware">RE</span>
+                        <span class="lab-difficulty medium">Medium</span>
+                    </a>
+                    -->
                 </div>
             </div>
         </section>
     </main>
+
     <footer>
-        Copyleft &copy; <span id="year"></span>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
     </footer>
 </body>
 </html>

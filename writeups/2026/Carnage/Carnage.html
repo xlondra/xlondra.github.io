@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeup — penetration testing lab walkthrough.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <title>Tryhackme - Carnage — xlondra</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+                <a href="#" class="nav-exit">exit</a>
+            </div>
+            <div class="hamburger-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+                </svg>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Tryhackme - Carnage</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date</strong> 2026-02-06</li>
+                    <li><strong>Platform</strong> TryHackMe</li>
+                    <li><strong>Difficulty</strong> Medium</li>
+                    <li><strong>Team</strong> <span class="team-badge blue">Blue Team</span></li>
+                    <li><strong>Link</strong> <a href="https://tryhackme.com/room/c2carnage" target="_blank" rel="noopener noreferrer">Open Lab ↗</a></li>
+                    <li><strong>Tags</strong> <span class="tag">Wireshark</span> <span class="tag">C2</span> <span class="tag">Malware</span></li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Summary</h2>
+
+                <p>Suspicious outbound requests were made from a workstation at <b>10.9.23.102</b>. Using Wireshark, we investigate the captured traffic inside the pcap file.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 1</h2>
+
+                <p><strong>What was the date and time for the first HTTP connection to the malicious IP?</strong></p>
+                <p>We can check this by filtering for all HTTP traffic. To filter all HTTP packets, enter <b>http</b> in the search bar at the top and press Enter. Doing so reveals 70,873 HTTP packets. The first HTTP packet is packet 1735. As seen in the image, the time it was sent was 2021-09-24 16:44:38.</p>
+                <img src="images/Screenshot_20260602_161726.png" class="lab-image zoomable" alt="Carnage - first http packet">
+                <p>Answer: <b>2021-09-24 16:44:38</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 2</h2>
+
+                <p><b>What is the name of the zip file that was downloaded?</b></p>
+                <p>I am going to refer to the previous question, because the first HTTP request was downloading a zip file. As seen in the image, documents.zip is the file being downloaded.</p>
+                <img src="images/Screenshot_20260602_162204.png" class="lab-image zoomable" alt="Carnage - documents.zip">
+                <p>Answer: <b>documents.zip</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 3</h2>
+
+                <p><b>What was the domain hosting the malicious zip file?</b></p>
+                <p>There are multiple ways of showing the host a file was downloaded from.<br> We will do it the following way:<br> 
+> Right-click the first HTTP packet.<br>
+> Follow<br>
+> HTTP Stream<br>
+Or simpler: <b>ctrl + alt + shift + H</b></p>
+                <p>This will show us what the client requested and to whom. The domain hosting the zip file is specified in the <b>Host</b> header.</p>
+                <img src="images/Screenshot_20260602_163300.png" class="lab-image zoomable" alt="">
+                <p>Answer: <b>attirenepal.com</b><br>
+</p>
+                <p>Don't close the HTTP stream yet, <strong>you'll need it for question 4, 5 & 6.</strong></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 4</h2>
+
+                <p><b>Without downloading the file, what is the name of the file in the zip file?</b></p>
+                <p>In the current HTTP stream we can see a file name at the first line of random data:</p>
+                <img src="images/Screenshot_20260602_164036.png" class="lab-image zoomable" alt="Carnage - file name inside zip">
+                <p>Answer: <b>chart-1530076591.xls</b></p>
+                <p>If you want, you can download the zip and see for yourself what's in there. Do so by clicking on <b>File > Export Objects > HTTP</b>, the rest speaks for itself. Be careful with the file as it may contain malicious macros.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 5</h2>
+
+                <p><b>What is the name of the webserver of the malicious IP from which the zip file was downloaded?</b></p>
+                <p>The name of the web server is shown in the server response header, as shown in the image.</p>
+                <img src="images/Screenshot_20260602_165138.png" class="lab-image zoomable" alt="Carnage - LiteSpeed webserver">
+                <p>Answer: <b>LiteSpeed</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 6</h2>
+
+                <p><b>What is the version of the webserver from the previous question?</b></p>
+                <p>The webserver is powered by PHP version 7.2.34 as shown in the <b>x-powered-by</b> header:</p>
+                <img src="images/Screenshot_20260602_165238.png" class="lab-image zoomable" alt="Carnage - php 7.2.34">
+                <p>Answer: <b>PHP/7.2.34</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 7</h2>
+
+                <p><b>Malicious files were downloaded to the victim host from multiple domains. What were the three domains involved with this activity?</b></p>
+                <p>Rather than going through a lot of HTTP packets, I filtered DNS packets and filtered out the odd domains. Filter for DNS packets by entering dns in the search bar.</p>
+                <p>I found the three domains and listed them in order of finding:<br>
+
+Packet 2422: <b>finejewels.com.au</b><br>
+Packet 2983: <b>thietbiagt.com</b><br>
+Packet 3224: <b>new.americold.com</b><br><br>
+
+Answer: <b>finejewels.com.au, thietbiagt.com, new.americold.com</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 8</h2>
+
+                <p><b>Which certificate authority issued the SSL certificate to the first domain from the previous question?</b></p>
+                <p>So the question is: Who issued the certificate of <b>finejewels.com.au</b>? We can once again filter for DNS packets and follow the UDP stream of the first DNS request for finejewels.com.au. In this Wireshark session we can enter the following filter in the search bar:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="udp.stream eq 77">└─$ udp.stream eq 77</code></pre>
+</div>
+                <p>This will result in Wireshark returning 2 DNS packets. The last one contains the DNS response, replying with the IP address of finejewels.com.au:</p>
+                <img src="images/Screenshot_20260602_171136.png" class="lab-image zoomable" alt="Carnage - finejewels.com.au IP">
+                <p>We can use the IP to construct the following filter in Wireshark:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ip.addr == 148.72.192.206 &amp;&amp; tls.handshake.type == 11">└─$ ip.addr == 148.72.192.206 &amp;&amp; tls.handshake.type == 11</code></pre>
+</div>
+                <details class="command-explanation">
+    <summary>What this does</summary>
+    <p><b>ip.addr</b> specifies either the destination or source address.<br>
+
+<b>tls.handshake.type == 11</b> tells Wireshark to filter for TLS handshakes.
+</p>
+</details>
+                <p>This will return 1 packet. When following the TCP stream, we can clearly see the authority that issued the certificate for this domain:</p>
+                <img src="images/Screenshot_20260602_171940.png" class="lab-image zoomable" alt="Carnage - certificate authority - GoDaddy">
+                <p>Answer: <b>GoDaddy</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 8</h2>
+
+                <p><b>What are the two IP addresses of the Cobalt Strike servers?</b></p>
+                <p>Finding 2 IP addresses in a list of 70,873 packets is close to impossible. Therefore, it is best practice to go to <b>Statistics > Conversations</b> and filter IPv4 conversations. I did so too and sorted from highest to lowest packet count:</p>
+                <img src="images/Screenshot_20260602_185955.png" class="lab-image zoomable" alt="Carnage - 1000 conversations!">
+                <p>I entered the 11 IPv4 addresses in Virustotal and found 2 Cobalt Strike C2 Servers:<br>
+
+Answer: <a href="https://www.virustotal.com/gui/ip-address/185.106.96.158/community" target="_blank" style="color: white">185.106.96.158</a>,
+<a href="https://www.virustotal.com/gui/ip-address/185.125.204.174/community" target="_blank" style="color: white">185.125.204.174</a></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 9</h2>
+
+                <p><b>What is the Host header for the first Cobalt Strike IP address from the previous question?</b></p>
+                <p>We can do this the same way we inspected the HTTP host; by following the TCP stream of the first packet (packet 6323) containing <b>185.106.96.158</b>. Use the following filter:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ip.addr == 185.106.96.158">└─$ ip.addr == 185.106.96.158</code></pre>
+</div>
+                <img src="images/Screenshot_20260602_191656.png" class="lab-image zoomable" alt="Carnage - ocsp.verizon.com">
+                <p>Answer: <b>ocsp.verisign.com</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 10</h2>
+
+                <p><b>What is the domain name of the second Cobalt Strike server IP? </b></p>
+                <p>When working with domain names and IPs, the first thing that comes to mind is DNS. So, we are using DNS once again to find the domain name belonging to the IP. Use the following filter:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="dns &amp;&amp; dns.a == 185.106.96.158">└─$ dns &amp;&amp; dns.a == 185.106.96.158</code></pre>
+</div>
+                <p>It returns packet 6511 containing the DNS response of the domain belonging to the IP <b>185.106.96.158</b>.</p>
+                <img src="images/Screenshot_20260602_193031.png" class="lab-image zoomable" alt="Carnage - survmeter.live">
+                <p>Answer: <b>survmeter.live</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 11</h2>
+
+                <p><b>What is the domain name of the second Cobalt Strike server IP? </b></p>
+                <p>Same question as before, now use the second Cobalt Strike IP address:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="dns &amp;&amp; dns.a == 185.125.204.174">└─$ dns &amp;&amp; dns.a == 185.125.204.174</code></pre>
+</div>
+                <img src="images/Screenshot_20260602_193419.png" class="lab-image zoomable" alt="Carnage - securitybusinpuff.com">
+                <p>Answer: <b>securitybusinpuff.com</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 12</h2>
+
+                <p><b>What is the domain name of the post-infection traffic?</b></p>
+                <p>I find this question a bit unclear, however, the hint pointed to POST requests. That being said, let's filter HTTP packets in Wireshark and follow the HTTP stream of the first POST packet:</p>
+                <img src="images/POST.png" class="lab-image zoomable" alt="Carnage - POST infection">
+                <img src="images/Screenshot_20260602_194229.png" class="lab-image zoomable" alt="Carnage - host maldivehost.net">
+                <p>Answer: <b>maldivehost.net</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 13</h2>
+
+                <p><b>What are the first eleven characters that the victim host sends out to the malicious domain involved in the post-infection traffic? </b></p>
+                <p>The first POST packet being sent from the victim to the C2 server can be filtered using the following filter:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="http &amp;&amp; http.host == maldivehost.net">└─$ http &amp;&amp; http.host == maldivehost.net</code></pre>
+</div>
+                <img src="images/first11.png" class="lab-image zoomable" alt="Carnage - First 11 base64">
+                <p>As you can see it sends "<b>/zLIisQRWZI9/OQsaDixzHTgtfjMcGypGenpldWF5eWV9f3k=</b>"<br>
+The first 11 characters of the data being sent consist of "zLIisQRWZI9"<br><br>
+Answer: <b>zLIisQRWZI9</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 14</h2>
+
+                <p><b>What was the length for the first packet sent out to the C2 server?</b></p>
+                <p>The length of the packet is actually already visible in the screenshot in question 13:</p>
+                <img src="images/first11.png" class="lab-image zoomable" alt="Carnage - length 281">
+                <p>Answer: <b>281</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 15</h2>
+
+                <p><b>What was the Server header for the malicious domain from the previous question?</b></p>
+                <p>The server header of the previous domain can be seen by once again following the HTTP stream of a POST request made to the C2 server. For the sake of clarity, I picked the first POST request again:</p>
+                <img src="images/serverHeader.png" class="lab-image zoomable" alt="Carnage - C2 Server header">
+                <p>Answer: <b>Apache/2.4.49 (cPanel) OpenSSL/1.1.1l mod_bwlimited/1.4</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 16</h2>
+
+                <p><b>The malware used an API to check for the IP address of the victim’s machine. What was the date and time when the DNS query for the IP check domain occurred? </b></p>
+                <p>We need to once again filter DNS packets. This time we're looking for an IP service. I scrolled a little past the middle and noticed packet 24147 making a request to "api.apify.org"</p>
+                <img src="images/dnsApi.png" class="lab-image zoomable" alt="Carnage - IP API">
+                <p>This was done at UTC 2021-09-24 17:00:04<br><br>
+Answer: <b>2021-09-24 17:00:04</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 17</h2>
+
+                <p><b>What was the domain in the DNS query from the previous question?</b></p>
+                <p>As stated in the previous questions answer, the domain used to fetch IP information was "<b>api.ipify.org</b>"<br><br>
+Answer: <b>api.ipify.org</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 18</h2>
+
+                <p><b>Looks like there was some malicious spam (malspam) activity going on. What was the first MAIL FROM address observed in the traffic?</b></p>
+                <p>The malware most likely used SMTP for this task. SMTP stands for <b>S</b>imple <b>M</b>ail <b>T</b>ransfer <b>P</b>rotocol. We can filter SMTP packets the same way we filter DNS and HTTP.</p>
+                <p>Filtering for smtp, the first mail address is visible at packet 28576.</p>
+                <img src="images/MAILFROM.png" class="lab-image zoomable" alt="Carnage - mail from">
+                <p>Answer: <b>farshin@mailfa.com</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">question 19</h2>
+
+                <p><b>How many packets were observed for the SMTP traffic?</b></p>
+                <p>If you didn't remove the smtp filter, you can still see the amount of captured SMTP packets in the bottom right of the Wireshark window. It states 1439.<br><br>
+Answer: <b>1439</b></p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Wrapping up</h2>
+
+                <p>Thank you for reading! Have a nice rest of your day.</p>
+            </section>
+        </article>
+    </main>
+
+    <footer>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
+    </footer>
+</body>
+</html>

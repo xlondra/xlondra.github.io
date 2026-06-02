@@ -46,5 +46,21 @@
     "difficulty": "Medium",
     "year": "2026",
     "tags": ["SSH", "PE", "Linux", "Privilege Escalation"]
+  },
+  {
+    "title": "infilo",
+    "url": "writeups/2026/infilo/infilo.html",
+    "platform": "offsec",
+    "difficulty": "Medium",
+    "year": "2026",
+    "tags": ["SSH", "prototype pollution", "Linux", "Node.js"]
+  },
+  {
+    "title": "Carnage",
+    "url": "writeups/2026/Carnage/Carnage.html",
+    "platform": "Tryhackme",
+    "difficulty": "Medium",
+    "year": "2026",
+    "tags": ["Wireshark", "C2", "Malware"]
   }
 ]

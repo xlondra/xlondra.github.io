@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Pentest Writeups & Security Notes">
+    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xlondra.github.io">
+    <title>Cryptkeeper - Offsec - Walktrough</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+                <a href="#" class="nav-exit">exit</a>
+            </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Offsec - Cryptkeeper - Walktrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 26-05-2026</li>
+                    <li><strong>Platform:</strong> Offsec</li>
+                    <li><strong>Difficulty:</strong> Hard</li>
+                    <li><strong>Link:</strong> <a href="https://portal.offsec.com/machine/cryptkeeper-207277" target="_blank" rel="noopener noreferrer">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">WASM</span>
+                        <span class="tag">xx</span>
+                    </li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <p>Let's start with an nmap scan</p>
+                <img src="images/nmap1.png" class="lab-image zoomable">
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo nmap -p- &lt;IP&gt;">sudo nmap -p- &lt;IP&gt;</code></pre>
+                </div>
+                <p>It shows port 80 (<b>http</b>) and 22 (<b>ssh</b>) are open. A version scan is not needed here.</p>
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+                <p>I opened the webpage and landed on a login page:</p>
+                <img src="images/http.png" class="lab-image zoomable">
+                <p>Looking at the source code, I found a WASM script, and <b>application.js</b>, both containing login logic<br>
+                    I downloaded the WASM script and then decompiled the downloaded file using WABT: <b>The WebAssembly Binary Toolkit</b><br>
+                    I downloaded WABT to my kali machine:
+                </p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="wget https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz">└─$ wget https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz</code></pre>
+                </div>
+                <p>And then de-compiled it to C:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="./wasm2c authentication.wasm">└─$ ./wasm2c authentication.wasm</code></pre>
+                </div>
+
+                <p>I read through both the decompile WASM and <b>application.js</b>. This is the authentication process:</p>
+                <ul>
+                    <li><b>1.</b> You type a username into the login form</li>
+                    <li><b>2.</b> The browser asks the server: "Give me the encoded password for this username"</li>
+                    <li><b>3.</b> The server responds with a XOR-encoded blob containing the password of the username you entered, concatenated with the username itself</li>
+                    <li><b>4.</b> The browser decrypts the blob</li>
+                    <li><b>5.</b> The browser compares the decrypted result to the password you typed</li>
+                    <li><b>6.</b> If they match -> login succeeds, a token gets sent to the server</li>
+                </ul>
+                <p>Now, what's so dangerous, is that step 4 and 5 are executed in the browser. 
+                    Thus, we control that process. Also, the XOR-key to decrypt the blob is hardcoded into WASM binary. It gets loaded into memory at startup and is trivially recoverable by anyone who decompiles the file.
+                    Because we control this process, we can simply ask the server for the encoded blob, decode it ourselves using the key we extracted from the WASM binary, and read the plaintext password directly, without ever needing to guess it.
+                </p>
+
+                <p><br>
+                    I got help of <b>AI</b> during the process of reverse engineering the WASM binary<br>
+                    and crafting the following javascript-script.
+                    This script decodes the returned XOR-encoded blob inside the console:
+                </p>
+
+                <details class="code-block">
+                    <summary>Javascript XOR decoder</summary>
+                    <pre><code>//Get encoded blob of the admin user
+var xhr = new XMLHttpRequest();
+xhr.open("GET", "/loginUser?user=admin", false);
+xhr.send(null);
+var cp = xhr.responseText;
+console.log("Full CP:", cp, "Length:", cp.length);
+
+//Decode the XOR-encoded blob using the hardcoded XOR-key
+//The key is written in HEX for readability 
+const key = [0x41,0x29,0x9F,0x13,0x45,0x42,0x88,0xFC,0xB8,0xD6,0xD0,0x5D,0x30,0xF6,0x12,0xCF];
+let decoded = "";
+for (let i = 0; i &lt; cp.length; i += 2) {
+    const byte = parseInt(cp.substring(i, i+2), 16);
+    decoded += String.fromCharCode(byte ^ key[(i/2) % key.length]);
+}
+console.log("Decoded:", decoded);
+
+//Last 5 chars should be "admin", rest is the password
+console.log("Password:", decoded.slice(0, -5));
+console.log("Username suffix:", decoded.slice(-5));
+                    </code></pre>
+                </details>
+                <p>I ran the script in the console at the login page and found the password:</p>
+                <img src="images/foundPassword.png" class="lab-image zoomable">
+                <p>I succesfully logged in using the retreived password:</p>
+                <img src="images/loggedIn.png" class="lab-image zoomable">
+
+            </section>
+        </article>
+    </main>
+    
+    <footer>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
+    </footer>
+</body>
+</html>

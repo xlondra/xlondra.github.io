@@ -1,110 +1,283 @@
+/* ========================================
+   WRITEUP LIST PAGE
+======================================== */
+
 .archive {
     width: 100%;
-    max-width: 800px;
+    max-width: 820px;
 }
 
 .labs-title {
-    color: #E2E8F0;
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 300;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
 }
 
-/* YEAR HEADER */
+.labs-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 36px;
+}
 
-.chevron {
+/* ========================================
+   CATEGORY TABS (Red / Blue / Malware)
+======================================== */
+
+.category-tabs {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 1.5em;
-    width: 1.5em;
-    transition: transform 0.25s ease;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.cat-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.cat-tab .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.cat-tab:hover {
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+
+.cat-tab.active {
+    border-color: var(--accent-border);
+    background: var(--accent-glow);
+    color: var(--accent);
+}
+
+.cat-tab[data-cat="red"] .dot       { background: var(--red); }
+.cat-tab[data-cat="blue"] .dot      { background: var(--blue); }
+.cat-tab[data-cat="malware"] .dot   { background: #c084fc; }
+.cat-tab[data-cat="all"] .dot       { background: var(--accent); }
+
+.cat-tab[data-cat="red"].active {
+    border-color: rgba(248,113,113,0.35);
+    background: var(--red-dim);
+    color: var(--red);
+}
+.cat-tab[data-cat="blue"].active {
+    border-color: rgba(96,165,250,0.35);
+    background: var(--blue-dim);
+    color: var(--blue);
+}
+.cat-tab[data-cat="malware"].active {
+    border-color: rgba(192,132,252,0.35);
+    background: rgba(192,132,252,0.1);
+    color: #c084fc;
+}
+
+
+/* ========================================
+   YEAR BLOCKS
+======================================== */
+
+.year-block {
+    margin-bottom: 20px;
 }
 
 .year-header {
     display: flex;
     align-items: center;
-    /* gap: 8px; */
-
-    font-size: 1.4rem;
-    color: var(--accent);
+    gap: 10px;
+    padding: 10px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
     cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+}
+
+.year-header:hover { color: var(--text-secondary); }
+
+.chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.25s ease;
+    color: var(--accent);
 }
 
 .year-text {
+    font-size: 0.9rem;
+    font-weight: 500;
     color: var(--text-secondary);
+    letter-spacing: 0.08em;
 }
 
 .count {
+    font-size: 0.75rem;
     color: var(--text-muted);
-    font-size: 0.9rem;
-    align-self: start;
+    margin-left: 2px;
 }
 
-/* YEAR CONTENT */
-
+/* Year content collapse */
 .year-content {
-    overflow: hidden;       /* essential for collapse */
-    max-height: 0;          /* start collapsed */
+    width: 100%;
+    overflow: hidden;
+    max-height: 0;
     transition: max-height 0.35s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 
-/* WRITEUP LINKS */
+/* ========================================
+   WRITEUP ROWS
+======================================== */
 
 .writeup-link {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 120px 80px 100px;
     align-items: center;
-
-    padding: 10px 15px;
-    margin-bottom: 10px;
-
+    padding: 11px 16px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-
     text-decoration: none;
     color: var(--text-secondary);
+    font-size: 0.875rem;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.writeup-link:hover { border-color: var(--accent); }
+.writeup-link::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: center;
+    transition: transform 0.2s ease;
+}
 
-/* Base alignment */
-.writeup-link span {
-    position: relative;
+.writeup-link:hover {
+    border-color: var(--accent-border);
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    transform: translateX(2px);
+}
+
+.writeup-link:hover::before {
+    transform: scaleY(1);
+}
+
+/* Red team writeup accent */
+.writeup-link[data-team="red"]::before       { background: var(--red); }
+.writeup-link[data-team="red"]:hover          { border-color: rgba(248,113,113,0.3); }
+
+/* Blue team writeup accent */
+.writeup-link[data-team="blue"]::before      { background: var(--blue); }
+.writeup-link[data-team="blue"]:hover         { border-color: rgba(96,165,250,0.3); }
+
+/* Malware writeup accent */
+.writeup-link[data-team="malware"]::before   { background: #c084fc; }
+.writeup-link[data-team="malware"]:hover      { border-color: rgba(192,132,252,0.3); }
+
+.lab-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.88rem;
+}
+
+.lab-platform {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
     text-align: center;
 }
 
-/* Column alignments */
-
-/* Properly centered separators */
-.lab-name::after,
-.lab-platform::after {
-    content: "";
-    position: absolute;
-    right: 0;                /* anchor to column edge */
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(
-        to bottom,
-        transparent,
-        rgb(41, 41, 41),
-        transparent
-    );
+.lab-category {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-align: center;
 }
 
+.lab-category.red     { color: var(--red); }
+.lab-category.blue    { color: var(--blue); }
+.lab-category.malware { color: #c084fc; }
 
-/* DIFFICULTY COLORS */
-
-.lab-difficulty.easy {
-    color: #22c55e;
+.lab-difficulty {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: right;
 }
 
-.lab-difficulty.medium {
-    color: #facc15;
+.lab-difficulty.easy   { color: var(--easy); }
+.lab-difficulty.medium { color: var(--medium); }
+.lab-difficulty.hard   { color: var(--hard); }
+
+/* Hidden row for category filtering */
+.writeup-link.row-hidden {
+    display: none;
 }
 
-.lab-difficulty.hard {
-    color: #ef4444;
+/* Column headers */
+.writeup-list-header {
+    display: grid;
+    grid-template-columns: 1fr 120px 80px 100px;
+    padding: 6px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+}
+
+.writeup-list-header span:last-child { text-align: right; }
+.writeup-list-header span:nth-child(2),
+.writeup-list-header span:nth-child(3) { text-align: center; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .writeup-link {
+        grid-template-columns: 1fr 90px 70px;
+    }
+
+    .writeup-link .lab-category {
+        display: none;
+    }
+
+    .writeup-list-header span:nth-child(3) {
+        display: none;
+    }
 }

