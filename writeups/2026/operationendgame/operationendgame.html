@@ -202,7 +202,7 @@ I tried cracking all hashes with Hashcat against the rockyou wordlist, but witho
 </div>
                 <p>Then in BloodHound go to <b>Explore > Pathfinding</b> and enter <b>CODY_ROY@THM.LOCAL</b> as the start node and <b>DOMAIN ADMINS@THM.LOCAL</b> as the destination node:</p>
                 <img src="images/ShortestPath.png" class="lab-image zoomable" alt="Operation Endgame - bloodhound network">
-                <p>Although BloodHound reveals a theoretical path to Domain Admin through the GUESTS group and TIER 2 OU, exploiting this path proved impractical. Instead, we pivot to password spraying, a technique that checks whether CODY_ROY's cracked password is reused by other domain accounts, a common misconfiguration in enterprise environments. Using NetExec, we sprayed CODY_ROY's cracked password against the full user list:</p>
+                <p>Although BloodHound reveals a theoretical path to Domain Admin through the GUESTS group and TIER 2 OU, exploiting this path proved impractical. Instead, we pivot to password spraying, a technique that checks whether CODY_ROY's cracked password is reused by other domain accounts. Using NetExec, we sprayed CODY_ROY's cracked password against the full user list:</p>
                 <div class="command-wrapper">
     <pre><code data-copy-content="netexec smb 10.128.166.23 -u users.txt -p 'CODY_ROY_PASSWORD_HERE' --no-bruteforce --continue-on-success">└─$ netexec smb 10.128.166.23 -u users.txt -p 'CODY_ROY_PASSWORD_HERE' --no-bruteforce --continue-on-success</code></pre>
 </div>
