@@ -62,5 +62,13 @@
     "difficulty": "Medium",
     "year": "2026",
     "tags": ["Wireshark", "C2", "Malware"]
+  },
+  {
+    "title": "Operation Engame",
+    "url": "writeups/2026/operationendgame/operationendgame.html",
+    "platform": "Tryhackme",
+    "difficulty": "Hard",
+    "year": "2026",
+    "tags": ["AD", "Active Directory", "Windows"]
   }
 ]

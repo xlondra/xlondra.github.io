@@ -402,3 +402,32 @@ button.copy-trigger.copied {
 }
 
 .re-block p { color: var(--text-secondary); margin: 0; font-size: 0.88rem; }
+
+
+/* ========================================
+   OUTPUT BLOCK (terminal / command output)
+======================================== */
+
+.output-label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    padding: 5px 18px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.output-label + pre {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.output-block pre {
+    border-left-color: var(--border-light);
+    max-height: 420px;
+    overflow-y: auto;
+}
