@@ -182,7 +182,7 @@ I tried cracking all hashes with Hashcat against the rockyou wordlist, but witho
 </details>
                 <p>It found the Kerberos 5 hash of user <b>CODY_ROY</b>:</p>
                 <img src="images/SPN.png" class="lab-image zoomable" alt="Operation Endgame - SPN">
-                <p>Because Kerberos allows any authenticated domain user to request service tickets, no elevated privileges were required. The DC issued a TGS for <b>CODY_ROY</b> encrypted with that account's password hash. I cracked the hash using hashcat:</p>
+                <p>Because Kerberos allows any authenticated domain user to request service tickets, no elevated privileges were required. As seen in the image above, the DC issued a TGS for <b>CODY_ROY</b> encrypted with that account's password hash. I cracked the hash using hashcat:</p>
                 <div class="command-wrapper">
     <pre><code data-copy-content="hashcat -m 13100 -a 0 hashes.txt rockyou.txt">└─$ hashcat -m 13100 -a 0 hashes.txt rockyou.txt</code></pre>
 </div>
@@ -191,9 +191,9 @@ I tried cracking all hashes with Hashcat against the rockyou wordlist, but witho
             <section class="writeup-section">
                 <h2 class="section-title">Exploitation</h2>
 
-                <p>As seen in the output of <b>impacket-GetUserSPNs</b> user CODY_ROY is part of the RDP users. Which means we can start a RDP session as CODY_ROY with the following command:</p>
+                <p>As seen in the output of <b>impacket-GetUserSPNs</b> user CODY_ROY is part of the RDP users. Which means we can start an RDP session as CODY_ROY with the following command:</p>
                 <div class="command-wrapper">
-    <pre><code data-copy-content="xfreerdp3 /cert:ignore /v:thm.local /u:'CODY_ROY' /p:'MKO)mko0' /dynamic-resolution /drive:.,linux /auto-reconnect /clipboard /compression /bpp:8 /audio-mode:0 -window-drag -themes -wallpaper">└─$ xfreerdp3 /cert:ignore /v:thm.local /u:'CODY_ROY' /p:'MKO)mko0' /dynamic-resolution /drive:.,linux /auto-reconnect /clipboard /compression /bpp:8 /audio-mode:0 -window-drag -themes -wallpaper</code></pre>
+    <pre><code data-copy-content="xfreerdp3 /cert:ignore /v:thm.local /u:'CODY_ROY' /p:'CODY_ROY_PASSWORD' /dynamic-resolution /drive:.,linux /auto-reconnect /clipboard /compression /bpp:8 /audio-mode:0 -window-drag -themes -wallpaper">└─$ xfreerdp3 /cert:ignore /v:thm.local /u:'CODY_ROY' /p:'CODY_ROY_PASSWORD' /dynamic-resolution /drive:.,linux /auto-reconnect /clipboard /compression /bpp:8 /audio-mode:0 -window-drag -themes -wallpaper</code></pre>
 </div>
                 <p>Logging in via RDP confirmed the credentials are valid. Although the session was heavily restricted by Group Policy, preventing us from opening Explorer or interacting with the desktop, we successfully authenticated as CODY_ROY, which is enough to proceed with further enumeration.</p>
                 <p>We can use BloodHound to calculate the shortest path to Domain Admin. First, we need to import the data into BloodHound. We can generate a zip file containing all domain data collected using CODY_ROY's credentials and feed it to BloodHound:</p>
