@@ -60,7 +60,7 @@
 
             <section class="writeup-section">
                 <h2 class="section-title">Summary</h2>
-
+                Through enumeration, we find a webpage served on port 80. Inspecting the source reveals an embedded WASM binary, which we reverse engineer with WABT to extract a hard-coded XOR key. We use that key to script the password generation and log in as admin. This drops us into a note editor vulnerable to path traversal, which we exploit to retrieve an RSA private key and open an SSH session as Harry. Enumerating the host from there points us to the copyfail exploit for privilege escalation.
                 
             </section>
             <section class="writeup-section">
@@ -215,8 +215,14 @@ harry                   [Status: 200, Size: 2602, Words: 7, Lines: 39, Duration:
             </section>
             <section class="writeup-section">
                 <h2 class="section-title">Privilege Escalation</h2>
-
-                <p>Wait, I want to tell you something... This box is unsolvable the way the author intended it. After 9 hours of struggling, I decided to take a look at the walkthrough myself. This is always a tough decision as it takes a piece of the fun away. However, the walkthrough stated, that, in order to escalate our privileges, we had to find a "XOR-encrypted backup file". I scanned the entire system for hours and hours without finding a file that came remotely close to the backup file. This is a screenshot from the official walkthrough:</p>
+                
+                <p>Wait, I want to flag something. This box isn't solvable the way the author
+intended. After nine hours of struggling, I decided to check the walkthrough
+myself, always a tough call, since it takes some of the fun away. According
+to the walkthrough, escalating privileges required finding a "XOR-encrypted
+backup file." I scanned the entire system for hours and never turned up
+anything remotely close to it. Here's a screenshot from the official
+walkthrough:</p>
                 <img src="images/whatwhatwhat.png" class="lab-image zoomable" alt="">
                 <p>So, according to the walkthrough, <span class='path'>/tmp</span> should contain the file "<b>backup.tar.gz.encrypted</b>". Well, here is a screenshot of the fresh /tmp directory:
 
