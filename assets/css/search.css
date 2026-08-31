@@ -47,3 +47,9 @@
     max-width: 820px;
     margin-bottom: 12px;
 }
+
+/* Search-result rows carry 3 columns (name / platform / difficulty) */
+#searchResults .writeup-link {
+    grid-template-columns: 1fr 120px 100px;
+}
+#searchResults .writeup-link .lab-difficulty { text-align: right; }

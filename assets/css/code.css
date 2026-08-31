@@ -1,6 +1,6 @@
-/* Syntax highlighting helpers */
-.kw  { color: #c084fc; }  /* keywords  */
-.fn  { color: #38bdf8; }  /* functions */
-.str { color: #86efac; }  /* strings   */
-.cm  { color: #4a6070; font-style: italic; }  /* comments */
-.num { color: #fbbf24; }  /* numbers   */
+/* Syntax highlighting — muted palette tuned for the dark-slate theme */
+.kw  { color: #c29ad6; }                  /* keywords  */
+.fn  { color: #8fbcbb; }                  /* functions */
+.str { color: #9ccb8f; }                  /* strings   */
+.cm  { color: #5c6b7a; font-style: italic; } /* comments */
+.num { color: #d69a6b; }                  /* numbers   */

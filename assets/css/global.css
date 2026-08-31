@@ -1,53 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
+/* ============================================================================
+   GLOBAL TOKENS + BASE  —  "WhiteFlag" editorial dark theme
+   Re-skin the whole site by editing the tokens in :root below.
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap');
 
 :root {
-    /* Background layers */
-    --bg-base:       #060a0f;
-    --bg-primary:    #080e15;
-    --bg-secondary:  #0c1520;
-    --bg-card:       #0f1b27;
-    --bg-card-hover: #132030;
-    --bg-inset:      #020609;
+    /* Background layers — cool dark slate */
+    --bg-base:       #1b1f26;
+    --bg-primary:    #1b1f26;
+    --bg-secondary:  #20252d;
+    --bg-card:       #21262f;
+    --bg-card-hover: #272d37;
+    --bg-inset:      #14171c;
+    --bg-sidebar:    #16191f;
 
     /* Text */
-    --text-primary:   #dce8f0;
-    --text-secondary: #8ba3b8;
-    --text-muted:     #4a6070;
-    --text-dim:       #2e4050;
+    --text-primary:   #e7e9ec;
+    --text-secondary: #a7aeb6;
+    --text-muted:     #6b727b;
+    --text-dim:       #464e57;
 
-    /* Accent — cyan-teal family, not neon green */
-    --accent:        #38bdf8;
-    --accent-soft:   #7dd3fc;
-    --accent-dim:    #0c3a55;
-    --accent-glow:   rgba(56,189,248,0.15);
-    --accent-border: rgba(56,189,248,0.25);
+    /* Accent — the one desaturated emerald */
+    --accent:        #5aa878;
+    --accent-soft:   #77c795;
+    --accent-dim:    #24402f;
+    --accent-glow:   rgba(90,168,120,0.12);
+    --accent-border: rgba(90,168,120,0.28);
+    --accent-wash:   rgba(90,168,120,0.06);
 
-    /* Red team accent */
-    --red:      #f87171;
-    --red-dim:  rgba(248,113,113,0.12);
-
-    /* Blue team accent */
-    --blue:     #60a5fa;
-    --blue-dim: rgba(96,165,250,0.12);
-
-    /* Severity */
-    --easy:   #34d399;
-    --medium: #fbbf24;
-    --hard:   #f87171;
+    /* Semantic team / severity accents (kept for the writeup index) */
+    --red:      #e57373;
+    --red-dim:  rgba(229,115,115,0.12);
+    --blue:     #6ea8e0;
+    --blue-dim: rgba(110,168,224,0.12);
+    --easy:     #5cbb8a;
+    --medium:   #e0b64e;
+    --hard:     #e57373;
+    --malware:  #b98cd6;
 
     /* Borders */
-    --border:       #1a2838;
-    --border-light: #243447;
+    --border:       #2a313b;
+    --border-light: #363e49;
 
     /* Effects */
-    --glow: 0 0 12px rgba(56,189,248,0.25);
-    --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
-    --shadow-deep: 0 8px 40px rgba(0,0,0,0.6);
+    --glow:        0 6px 22px rgba(0,0,0,0.38);
+    --shadow-card: 0 4px 20px rgba(0,0,0,0.35);
+    --shadow-deep: 0 12px 44px rgba(0,0,0,0.55);
+
+    /* Type */
+    --font-display: 'Bitter', Georgia, 'Times New Roman', serif;
+    --font-body:    'Source Sans 3', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono:    'IBM Plex Mono', 'JetBrains Mono', monospace;
 
     /* Layout */
-    --radius:    4px;
-    --radius-md: 8px;
-    --container: 1100px;
+    --radius:    6px;
+    --radius-md: 10px;
+    --container: 1180px;
+    --sidebar-w: 300px;
+    --content-pad: 3.25rem;
 }
 
 *, *::before, *::after {
@@ -56,38 +66,66 @@
     margin: 0;
 }
 
-/* Base typography */
+html { scroll-behavior: smooth; color-scheme: dark; }
+
 body {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-body);
     background: var(--bg-base);
-    color: var(--text-primary);
-    line-height: 1.65;
-    display: flex;
-    flex-direction: column;
+    color: var(--text-secondary);
+    font-size: 1.02rem;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     min-height: 100vh;
-    /* Subtle grid texture */
-    background-image:
-        linear-gradient(rgba(56,189,248,0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56,189,248,0.015) 1px, transparent 1px);
-    background-size: 40px 40px;
+
+    /* Persistent sidebar + content column.
+       Named areas keep <main>/<footer> in the content column even
+       before the sidebar is injected — no layout flash. */
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+        "sidebar main"
+        "sidebar footer";
 }
+
+/* The old inline terminal <header> is replaced by the injected sidebar */
+body > header { display: none; }
+
+.site-sidebar { grid-area: sidebar; }
+main          { grid-area: main; }
+body > footer { grid-area: footer; }
 
 /* Monospace elements */
-code, pre, .terminal, .prompt, kbd {
-    font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
-}
+code, pre, kbd, .terminal, .prompt { font-family: var(--font-mono); }
 
-/* Smooth scrolling */
-html { scroll-behavior: smooth; }
+/* Default links (inline body links inherit the accent) */
+a { color: var(--accent); text-decoration: none; transition: color 0.15s ease; }
+a:hover { color: var(--accent-soft); }
 
-/* Selection color */
-::selection {
-    background: var(--accent-dim);
-    color: var(--accent-soft);
-}
+/* Accessible focus ring */
+:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 3px; border-radius: 2px; }
+
+::selection { background: rgba(90,168,120,0.26); color: var(--text-primary); }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
+
+/* Mobile: sidebar collapses to a top bar */
+@media (max-width: 820px) {
+    body {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        grid-template-areas:
+            "sidebar"
+            "main"
+            "footer";
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
