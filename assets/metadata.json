@@ -5,7 +5,11 @@
     "platform": "TryHackMe",
     "difficulty": "Hard",
     "year": "2026",
-    "tags": ["SSRF", "RFI", "DNS"]
+    "tags": [
+      "SSRF",
+      "RFI",
+      "DNS"
+    ]
   },
   {
     "title": "Robots",
@@ -13,7 +17,12 @@
     "platform": "TryHackMe",
     "difficulty": "Hard",
     "year": "2026",
-    "tags": ["SSH", "XSS", "Linux", "RFI"]
+    "tags": [
+      "SSH",
+      "XSS",
+      "Linux",
+      "RFI"
+    ]
   },
   {
     "title": "Filebrowser",
@@ -21,7 +30,10 @@
     "platform": "Offsec",
     "difficulty": "Medium",
     "year": "2026",
-    "tags": ["RCE", "SUID"]
+    "tags": [
+      "RCE",
+      "SUID"
+    ]
   },
   {
     "title": "Envizon",
@@ -29,7 +41,12 @@
     "platform": "Tryhackme",
     "difficulty": "Hard",
     "year": "2026",
-    "tags": ["OSS", "RCE", "Docker", "nmap"]
+    "tags": [
+      "OSS",
+      "RCE",
+      "Docker",
+      "nmap"
+    ]
   },
   {
     "title": "Ra 1.1",
@@ -37,7 +54,11 @@
     "platform": "Tryhackme",
     "difficulty": "Hard",
     "year": "2026",
-    "tags": ["AD", "SMB", "XMPP"]
+    "tags": [
+      "AD",
+      "SMB",
+      "XMPP"
+    ]
   },
   {
     "title": "sshcontrol",
@@ -45,15 +66,25 @@
     "platform": "offsec",
     "difficulty": "Medium",
     "year": "2026",
-    "tags": ["SSH", "PE", "Linux", "Privilege Escalation"]
+    "tags": [
+      "SSH",
+      "PE",
+      "Linux",
+      "Privilege Escalation"
+    ]
   },
   {
     "title": "infilo",
     "url": "writeups/2026/infilo/infilo.html",
-    "platform": "offsec",
+    "platform": "Offsec",
     "difficulty": "Medium",
     "year": "2026",
-    "tags": ["SSH", "prototype pollution", "Linux", "Node.js"]
+    "tags": [
+      "SSH",
+      "prototype pollution",
+      "Linux",
+      "Node.js"
+    ]
   },
   {
     "title": "Carnage",
@@ -61,7 +92,11 @@
     "platform": "Tryhackme",
     "difficulty": "Medium",
     "year": "2026",
-    "tags": ["Wireshark", "C2", "Malware"]
+    "tags": [
+      "Wireshark",
+      "C2",
+      "Malware"
+    ]
   },
   {
     "title": "Operation Engame",
@@ -69,6 +104,47 @@
     "platform": "Tryhackme",
     "difficulty": "Hard",
     "year": "2026",
-    "tags": ["AD", "Active Directory", "Windows"]
+    "tags": [
+      "AD",
+      "Active Directory",
+      "Windows"
+    ]
+  },
+  {
+    "title": "SugarVale",
+    "url": "writeups/2026/SugarVale/SugarVale.html",
+    "platform": "Offsec",
+    "difficulty": "Medium",
+    "year": "2026",
+    "tags": [
+      "SSTI",
+      "Linux",
+      "SSH",
+      "cron"
+    ]
+  },
+  {
+    "title": "Enigma",
+    "url": "writeups/2026/Enigma/Enigma.html",
+    "platform": "HackTheBox",
+    "difficulty": "Easy",
+    "year": "2026",
+    "tags": [
+      "Linux",
+      "NFS"
+    ]
+  },
+  {
+    "title": "Cryptkeeper",
+    "url": "writeups/2026/Cryptkeeper/Cryptkeeper.html",
+    "platform": "Offsec",
+    "difficulty": "Hard",
+    "year": "2026",
+    "tags": [
+      "XOR",
+      "RE",
+      "WASM",
+      "Linux"
+    ]
   }
 ]
